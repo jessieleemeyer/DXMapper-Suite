@@ -1,0 +1,64 @@
+DXMAPPER SUITE - FREEWARE LICENSE AGREEMENT
+(FM Tuner, RDS Monitor and DX Mapper)
+
+Copyright (c) 2026 DXMapper Suite. All rights reserved.
+
+By installing or using this software you agree to these terms. If you do
+not agree, do not install or use it.
+
+1. LICENSE
+   This software is free. You may install and use it free of charge on as
+   many computers as you like, for personal or club use. You may give
+   unchanged copies of the original ZIP to other people free of charge.
+   The author may offer paid online services for it in the future; this
+   agreement does not require you to buy them.
+
+2. YOU MAY NOT
+   - sell, rent or charge for this software or any copy of it;
+   - remove or change this agreement or the copyright notices;
+   - pass off the software, or a changed version of it, as your own work;
+   - take the code or parts of it into another program.
+
+3. HD RADIO DECODER
+   No HD Radio decoder is included. If you add one ("Add HD decoder..."),
+   you supply it yourself and are responsible for following its own
+   license and any laws that apply where you live.
+
+4. THIRD-PARTY PARTS AND ONLINE SERVICES
+   The software includes or uses third-party parts under their own
+   licenses (see THIRD_PARTY_NOTICES.txt), and looks up public
+   information (maps, FCC data, Wikipedia, station logos and streams)
+   from online services. Those services have
+   their own terms; the author does not control them or what they return.
+   Station names, logos and trademarks belong to their owners.
+
+5. RADIO RECEPTION
+   You are responsible for using your receiver lawfully. Some
+   transmissions may not be legal to listen to, record or share where you
+   live.
+
+6. YOUR DATA
+   Your settings, logs and locations stay on your computer in the
+   settings folders. The software does not send your personal data to the
+   author. The remote page only works on your own home network.
+
+7. NO WARRANTY
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+   AND NON-INFRINGEMENT. Station details, distances and locations may be
+   wrong. Back up your log.
+
+8. LIMITATION OF LIABILITY
+   TO THE FULLEST EXTENT ALLOWED BY LAW, THE AUTHOR IS NOT LIABLE FOR ANY
+   DAMAGES OR LOSS (INCLUDING LOST DATA OR DAMAGED EQUIPMENT) ARISING FROM
+   USING OR NOT BEING ABLE TO USE THE SOFTWARE.
+
+9. ENDING THIS AGREEMENT
+   This agreement ends automatically if you break it. You must then delete
+   all copies of the software.
+
+10. LAW
+   This agreement follows the laws of the State of Kentucky, USA.
+
+CONTACT
+   Ideas, problems or questions: j.rds.monitor@gmail.com
