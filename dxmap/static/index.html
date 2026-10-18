@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>DX Mapper</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="/static/app.css">
+<style>
+.logs-bar button { padding: 1px 8px; margin-left: 4px; }
+#logs-list { list-style: none; padding: 0; margin: 8px 0; }
+#logs-list li { display: flex; gap: 10px; align-items: center; padding: 4px 0; border-bottom: 1px solid #8883; }
+#logs-list .lg-btns { margin-left: auto; display: flex; gap: 4px; }
+.vo-box { background: #8881; border-left: 3px solid #888; padding: 6px 8px; }
+tr.vo td { font-style: italic; }
+</style>
+</head>
+<body>
+<aside id="sidebar">
+  <header>
+    <h1>DX Mapper</h1>
+    <div id="feed" class="feed off" title="RDS Monitor feed">Feed: starting…</div>
+    <div id="now" class="now hidden"></div>
+    <div class="excel logs-bar"><span id="logs-now"></span> <button id="btn-logs" title="Pick which logs to show. The first one ticked gets new catches and edits; the rest are view only.">Logs…</button></div>
+    <div id="excel" class="excel"></div>
+    <div id="jobs" class="excel hidden"></div>
+  </header>
+  <div id="views" class="views">
+    <button data-view="current" title="Stations logged from the RDS Monitor in the last few hours">Current</button>
+    <button data-view="history" title="Stations logged in a past period">History</button>
+    <button data-view="all" title="Every log entry, as a table under the map">All Log</button>
+  </div>
+  <div id="reach" class="views reach" title="Local / Extended local / DX by distance from home (Home… to change the miles)">
+    <button data-reach="all">All</button>
+    <button data-reach="local">Local</button>
+    <button data-reach="ext">Ext local</button>
+    <button data-reach="dx">DX</button>
+  </div>
+  <div id="opt-current" class="viewopt hidden">Logged in the last
+    <select id="cur-span">
+      <option value="1">1 hour</option><option value="3">3 hours</option>
+      <option value="6">6 hours</option><option value="12">12 hours</option>
+      <option value="24">24 hours</option><option value="session">since DX Mapper opened</option>
+    </select>
+    <div class="muted small">Live from the RDS Monitor Log button (imports are in History).</div>
+  </div>
+  <div id="opt-history" class="viewopt hidden">
+    <select id="hist-range">
+      <option value="all">All time</option><option value="today">Today</option>
+      <option value="yesterday">Yesterday</option><option value="7">Last 7 days</option>
+      <option value="30">Last 30 days</option><option value="year">This year</option>
+      <option value="custom">Pick dates…</option>
+    </select>
+    <span id="hist-dates" class="hidden"><input type="date" id="hist-from"> to <input type="date" id="hist-to"></span>
+    <div class="muted small">Days you logged (click one to see that day):</div>
+    <ul id="days"></ul>
+  </div>
+  <div id="period" class="period"></div>
+  <div class="toolbar">
+    <button id="btn-logbook" class="primary" title="Open your log book: one row per station, laid out like your spreadsheet">Log Book</button>
+    <button id="btn-addst" title="Log a station that has no RDS: lists the stations on the frequency you're tuned to, closest first, or search by call, slogan, city or state">Add station…</button>
+    <button id="btn-import" class="full-only">Import…</button>
+    <a id="btn-xlsx" class="button full-only" href="/api/export.xlsx">Export Excel</a>
+    <a id="btn-export" class="button" href="/api/export.csv">CSV</a>
+    <button id="btn-home">Home…</button>
+    <button id="btn-backup">Backup…</button>
+    <button id="btn-conditions" title="Check skip conditions (tropo and E-skip) on free websites">Conditions…</button>
+    <button id="btn-shot" title="Save a picture of the map with your location hidden, in settings\Screenshots">Screenshot</button>
+    <button id="btn-monfile" class="full-only" title="For your whole log: fill the RDS Monitor's stations.txt (call, city, coordinates, slogan - lines you edited are kept), download missing logos (logos you have are kept) and look up live stream links and station websites">Update all</button>
+  </div>
+  <div id="upd" class="upd hidden">
+    <div class="upd-head"><b id="upd-title">Update all</b><button id="upd-close" class="upd-x" title="Close this summary">×</button></div>
+    <div class="upd-row"><span>Details</span><progress id="upd-details" max="1" value="0"></progress><span id="upd-details-t" class="upd-t"></span></div>
+    <div class="upd-row"><span>Logos</span><progress id="upd-logos" max="1" value="0"></progress><span id="upd-logos-t" class="upd-t"></span></div>
+    <div class="upd-row"><span>Streams</span><progress id="upd-streams" max="1" value="0"></progress><span id="upd-streams-t" class="upd-t"></span></div>
+    <div id="upd-sum" class="upd-sum"></div>
+    <div id="upd-err" class="upd-err"></div>
+  </div>
+  <div class="filters">
+    <input id="search" type="search" placeholder="Search call, PI, PS, city, freq…">
+    <div class="row">
+      <select id="sort" title="Sort the station list">
+        <option value="last">Sort: Latest heard</option>
+        <option value="freq">Sort: Frequency</option>
+        <option value="call">Sort: Call letters</option>
+        <option value="dist">Sort: Farthest first</option>
+      </select>
+      <select id="filter">
+        <option value="all">All stations</option>
+        <option value="monitor">Logged from monitor</option>
+        <option value="import">Imported</option>
+        <option value="nogeo">No location yet</option>
+      </select>
+    </div>
+    <label class="check"><input id="follow" type="checkbox" checked> Jump to new logs</label>
+    <label class="check" title="Move the map to whatever station the tuner is on and open its details, even if it is already in your log"><input id="tune-follow" type="checkbox"> Follow tuner</label>
+    <label class="check" title="Zoom and center the map on the station and your location when you pick, log or tune a station. Untick to keep the map where you put it."><input id="autocenter" type="checkbox" checked> Auto-center map</label>
+    <label class="check"><input id="rings" type="checkbox" checked> Local / Ext rings</label>
+    <label class="check"><input id="outerRings" type="checkbox" checked> 100–400 mi rings</label>
+    <label class="check" title="Draw the FCC service contour of the station you're tuned to"><input id="coverage" type="checkbox" checked> Coverage when tuned</label>
+    <label class="check" title="Draw US county and state lines on top of the map"><input id="borders" type="checkbox" checked> County / state lines</label>
+    <label class="check" title="Live NEXRAD Doppler weather radar (US), updated every 5 minutes"><input id="radar" type="checkbox"> Weather radar</label>
+      <label class="check" title="For sharing screenshots: hides your house, the rings, the lines from home and all distances, and shows a rough Local-size circle a little off-center instead"><input id="hide-loc" type="checkbox"> Hide my location</label>
+  </div>
+  <div id="count" class="count"></div>
+  <ul id="list"></ul>
+</aside>
+
+<div id="mainwrap">
+  <main id="map"></main>
+  <section id="alllog" class="hidden">
+    <div class="alllog-bar">
+      <b>All Log</b> <span id="log-count" class="muted"></span>
+      <input id="log-search" type="search" placeholder="Search the log…">
+    </div>
+    <div class="alllog-scroll"><table id="log-table" class="logs big"></table></div>
+  </section>
+</div>
+
+<section id="details" class="hidden">
+  <button class="close" id="details-close" title="Close">×</button>
+  <div id="details-body"></div>
+</section>
+
+
+<div id="modal" class="hidden">
+  <div class="dialog">
+    <button class="close" id="modal-close" title="Close">×</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div id="toast" class="hidden"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<dialog id="cond-dlg">
+  <h2>Skip conditions</h2>
+  <p class="muted">These open in your web browser.</p>
+  <p><button class="primary cond-site" data-site="tropo">Tropo forecast</button> Hepburn's ducting forecast maps for North America, several days ahead.</p>
+  <p><button class="primary cond-site" data-site="dxmaps">Live E-skip (DXMaps)</button> Live ham contacts on a map. When 6 m and 2 m paths open, FM-band E-skip is likely.</p>
+  <p><button class="primary cond-site" data-site="propquest">E-skip MUF (PropQuest)</button> How high the E-skip frequency is reaching right now.</p>
+  <button id="cond-close">Close</button>
+</dialog>
+<dialog id="backup-dlg">
+  <h2>Backup</h2>
+  <p>The <b>master backup</b> is every station and every log you have ever made (never trimmed).
+  It is updated after every log in <code>settings\Backups</code>. After a reinstall, use <b>Restore</b> to get the whole log back.</p>
+  <p><label>Also copy it to (e.g. your Google Drive folder):<br>
+    <input id="b-dir" size="46" placeholder="G:\My Drive\DX Mapper"></label></p>
+  <p><label><input type="checkbox" id="b-daily"> Also keep daily copies (last 30 days)</label></p>
+  <p id="b-status" class="muted"></p>
+  <button class="primary" id="b-save">Save</button> <button id="b-now">Back up now</button>
+  <button id="b-close">Close</button>
+  <h3>Restore</h3>
+  <p class="muted">Replaces the log with a master backup (your current log is saved first in settings\Backups).</p>
+  <p><label>Folder holding <code>DX Master Backup.db</code>:<br>
+    <input id="r-dir" size="46" placeholder="G:\My Drive\DX Mapper"></label>
+    <button id="r-go">Restore</button></p>
+</dialog>
+<dialog id="logs-dlg">
+  <h2>Logs</h2>
+  <p class="muted">Tick the logs to show together on the map and in the Log Book. The <b>first one you tick</b> (✎) gets new catches, edits and imports; the others are view only, so their old info shows while you hunt. Untick all and tick again to change the order.</p>
+  <ul id="logs-list"></ul>
+  <p><input id="logs-name" size="24" placeholder="New log name, e.g. Current"> <button id="logs-new">New log</button></p>
+  <p><label><input type="checkbox" id="logs-all"> Also log new catches into the other ticked logs</label>
+    <span class="muted">(off unless you turn it on)</span></p>
+  <p id="logs-status" class="muted"></p>
+  <button class="primary" id="logs-save">Show ticked</button> <button id="logs-close">Close</button>
+</dialog>
+<dialog id="logall-dlg">
+  <h2>⚠ Log into every ticked log?</h2>
+  <p><b>Every new catch (Log button and Auto-log) will go into ALL the logs you tick, not just the first one.</b></p>
+  <p id="logall-which"></p>
+  <p class="muted">Edits, deletes and imports still go only into the first log. You can turn this off again here any time.</p>
+  <button class="danger" id="logall-on">Turn it on</button> <button class="primary" id="logall-off">Keep it off</button>
+</dialog>
+<script src="/tileports.js"></script>
+<script src="/static/html-to-image.js"></script>
+<script src="/static/topojson-client.min.js"></script>
+<script src="/static/details.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>

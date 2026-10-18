@@ -1,0 +1,68 @@
+DEPENDENCIES - DXMapper Suite (FM Tuner, RDS Monitor, DX Mapper)
+================================================================
+Everything the three programs need to run on Windows 10 or 11 (64-bit),
+and where each part comes from. "Install All.bat" does section B for you.
+Licenses and credits are in THIRD_PARTY_NOTICES.txt (public copy).
+
+A. ALREADY INCLUDED IN THE ZIP (nothing to do)
+   Part                    Used by      What for
+   Segno 1.6.1             FM Tuner     QR code on the remote page
+   html-to-image           DX Mapper    map screenshots
+   topojson-client 3.1.0   DX Mapper    county and state lines
+   us-atlas borders        DX Mapper    county and state line data
+
+B. INSTALLED BY "Install All.bat" (needs the internet once)
+   Part          Version    Used by      Needed?
+   Python        3.10+      all three    REQUIRED - install it yourself first
+                 (64-bit)                from python.org, tick "Add python.exe
+                                         to PATH"; 3.12 is the safest choice
+   tkinter       (Python)   all three    REQUIRED - comes with Python; keep
+                                         "tcl/tk and IDLE" ticked in setup
+   numpy         1.24+      FM Tuner     REQUIRED - radio signal processing
+   sounddevice   0.4.6+     FM Tuner     REQUIRED - audio out (includes
+                                         PortAudio; installs cffi with it)
+   scipy         1.10+      FM Tuner     REQUIRED - audio filters and the
+                                         channel filter (no sound without it)
+   requests      2.31+      RDS Monitor  optional - logo, FCC and Wikipedia
+                                         lookups (installs urllib3, idna,
+                                         charset-normalizer, certifi)
+   Pillow        10.0+      RDS Monitor  optional - logo pictures; without
+                                         it the monitor shows "No Logo"
+   pyserial      3.5+       RDS Monitor  optional - USB GPS dongle for your
+                                         location; without it you type
+                                         Home/Away by hand
+   pywebview     5.0-6.x    DX Mapper    optional - the map's own window;
+                                         without it the map opens in your
+                                         web browser (installs pythonnet,
+                                         bottle, proxy_tools,
+                                         typing_extensions)
+   Microsoft Edge WebView2  DX Mapper    already part of Windows 10 and 11
+
+C. YOU ADD THESE YOURSELF (not included)
+   Part                      Used by    Needed?
+   rtlsdr.dll and            FM Tuner   REQUIRED for an RTL-SDR dongle.
+   libusb-1.0.dll                       From the RTL-SDR Blog Release.zip
+                                        (x64 folder) at
+                                        github.com/rtlsdrblog/rtl-sdr-blog
+                                        - copy both into the main folder
+   Zadig (WinUSB driver)     FM Tuner   REQUIRED once per PC for the dongle,
+                                        zadig.akeo.ie (INSTALL.txt, FM Tuner
+                                        step 3)
+   PothosSDR (SoapySDR)      FM Tuner   only for HackRF and other
+                                        non-RTL-SDR radios (INSTALL.txt
+                                        step 4a)
+   USB GPS dongle            RDS Monitor optional - any dongle that shows up
+                                        as a COM port sending NMEA (most do)
+   HD Radio decoder (nrsc5)  FM Tuner   optional, NOT INCLUDED. Without it
+                                        everything works except HD audio and
+                                        HD data. Add it with
+                                        "Add HD decoder..." in the tuner.
+
+D. ONLINE SERVICES (used while running, nothing to install)
+   Map tiles and radar, place search, FCC, WTFDA, Wikipedia, Radio Browser,
+   iHeart, TuneIn, iTunes album art and Facebook logos. The map itself
+   (Leaflet 1.9.4) also loads from unpkg.com. Without the internet
+   the radio still works; maps, lookups, logos and streams don't.
+
+Everything else the programs use (sqlite3, sockets, csv, zip, web server
+and so on) is part of Python itself.

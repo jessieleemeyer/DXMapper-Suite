@@ -1,0 +1,10 @@
+# --- FM Tuner
+numpy>=1.24            # FM demodulation, MPX filtering, FFT for the waterfall
+sounddevice>=0.4.6     # Windows audio output device enumeration and playback
+scipy>=1.10            # audio filters/resampling and the channel filter
+# --- RDS Monitor
+requests>=2.31         # station logo lookup/download   (optional)
+pillow>=10.0           # station logo conversion/resize (optional)
+pyserial>=3.5          # USB GPS dongle for Home/Away location (optional)
+# --- DX Mapper
+pywebview>=5.0,<7

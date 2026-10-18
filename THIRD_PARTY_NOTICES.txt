@@ -1,0 +1,217 @@
+THIRD-PARTY NOTICES AND CREDITS - DXMapper Suite (FM Tuner, RDS Monitor, DX Mapper)
+===================================================================================
+DXMapper Suite itself, (c) 2026 J. Meyer, is covered by EULA.txt. It includes, loads, links to or relies
+on the work of other people and organizations listed below, each under its
+own license or terms. Full license texts for everything included in this
+ZIP (and Leaflet) are at the end of this file. Thank you to all of them.
+
+1. INCLUDED IN THIS ZIP
+- Segno 1.6.1 (QR code on the tuner's remote page)
+  fm_tuner\vendor\segno - BSD 3-Clause License, (c) Lars Heuer
+- html-to-image (map screenshots)
+  dxmap\static\html-to-image.js - MIT License, (c) W.Y.
+- topojson-client 3.1.0 (county and state lines)
+  dxmap\static\topojson-client.min.js - ISC License, (c) Michael Bostock
+- us-atlas county and state borders
+  dxmap\static\us-borders.json - ISC License, (c) Michael Bostock;
+  border data from the U.S. Census Bureau (public domain)
+
+2. LOADED FROM THE INTERNET WHILE RUNNING
+- Leaflet 1.9.4 (the map), from unpkg.com - BSD 2-Clause License,
+  (c) Volodymyr Agafonkin and CloudMade
+
+3. MAPS AND OVERLAYS (also credited on the map itself)
+- Street map: (c) OpenStreetMap contributors, Open Database License (ODbL),
+  www.openstreetmap.org/copyright
+- Topo, hillshade, labels: (c) Esri and its data providers (USGS, NASA,
+  CGIAR and others)
+- Satellite imagery: (c) Esri, Maxar, Earthstar Geographics
+- Weather radar: Iowa Environmental Mesonet, Iowa State University
+  (NWS NEXRAD data)
+- Place-name search: Nominatim, (c) OpenStreetMap contributors (ODbL)
+
+4. STATION INFORMATION LOOKED UP ONLINE
+- FCC (U.S. Federal Communications Commission) FM Query and licensing
+  data - U.S. government public data
+- WTFDA FM database, db.wtfda.org - Worldwide TV-FM DX Association
+- Wikipedia (station summaries, logos, HD subchannels) - text under
+  CC BY-SA 4.0; images come from Wikipedia / Wikimedia Commons, each under
+  its own license or fair-use terms shown on its file page
+- Radio Browser (radio-browser.info), iHeart (iHeartMedia) and TuneIn -
+  station streams
+- Apple iTunes Search API - album art for the song playing
+- Facebook (Meta) page pictures - station logos
+- Google Sheets - only when you import your own sheet
+All station names, call letters, slogans, logos, artwork and streams belong
+to their owners. They are shown for identification only.
+
+5. WEBSITES THE PROGRAMS LINK TO (opened in your browser, not included)
+FMLIST (fmlist.org), Google search, DX Info Centre tropo forecast
+(dxinfocentre.com), DXMaps (dxmaps.com), PropQuest (propquest.co.uk),
+RTL-SDR Blog driver download (github.com/rtlsdrblog), Zadig (zadig.akeo.ie)
+
+6. INSTALLED BY "Install All" FROM PyPI (each under its own license)
+- numpy - BSD 3-Clause (its Windows build also includes OpenBLAS and other
+  parts under 0BSD, MIT, Zlib and CC0)
+- sounddevice - MIT (includes PortAudio, MIT-style) with cffi - MIT
+- scipy - BSD 3-Clause, (c) SciPy Developers (audio filters; its Windows
+  build also includes OpenBLAS and other parts under their own licenses)
+- requests - Apache 2.0, with urllib3 (MIT), idna (BSD 3-Clause),
+  charset-normalizer (MIT) and certifi (MPL 2.0)
+- Pillow - MIT-CMU (HPND)
+- pyserial - BSD 3-Clause, (c) Chris Liechti (USB GPS, optional)
+- pywebview - BSD 3-Clause, with pythonnet (MIT), bottle (MIT),
+  proxy_tools (MIT) and typing_extensions (PSF)
+- Python - Python Software Foundation License; tkinter uses Tcl/Tk
+  (Tcl/Tk license, BSD-style)
+- Microsoft Edge WebView2 (DX Mapper's window, part of Windows) -
+  Microsoft's terms
+
+7. YOU ADD THESE YOURSELF (not included)
+- RTL-SDR driver and rtlsdr.dll (librtlsdr / RTL-SDR Blog, GPL-2.0)
+- libusb-1.0.dll (libusb, LGPL-2.1), from the same RTL-SDR Blog download
+- Zadig USB driver installer (Akeo, GPL-3.0)
+- SoapySDR / PothosSDR for HackRF and other radios (Boost Software License)
+- An HD Radio decoder such as nrsc5 (GPL-3.0). If you add one, you are
+  responsible for following its license.
+
+8. STANDARDS, TABLES AND FILE FORMATS THE CODE FOLLOWS
+Written from these published standards and lists. Short tables from them
+(PTY names, RT+ classes, ODA names, TMC event phrases and durations) are
+reproduced for decoding only and remain the property of their publishers.
+- RBDS: NRSC-4-B, National Radio Systems Committee (PI to call letters,
+  U.S. PTY names)
+- RDS: IEC 62106 / EN 50067, IEC and CENELEC
+- RadioText Plus (RT+): RDS Forum specification
+- Registered ODA list: RDS Forum and NRSC
+- TMC: ALERT-C, ISO 14819-1 and ISO 14819-2 (a subset of event phrases)
+- HD Radio: NRSC-5 (decoded only by the separate add-on above)
+- RDS Spy .spy files and the ASCII "G" TCP format: RDS Spy by Jan Kolar
+  and SDR# RDSOutput (Airspy), for compatibility only
+
+9. TRADEMARKS
+HD Radio is a trademark of Xperi Inc. RDS Spy, SDR#, Airspy, RTL-SDR,
+HackRF, iTunes, Apple, Facebook, Google, Wikipedia, OpenStreetMap, Esri,
+iHeart, TuneIn and all other names are trademarks of their owners. This
+project is not affiliated with or endorsed by any of them.
+
+
+----------------------------------------------------------------------
+Segno - BSD 3-Clause License
+----------------------------------------------------------------------
+Copyright (c) 2016 - 2024, Lars Heuer
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+----------------------------------------------------------------------
+html-to-image - MIT License
+----------------------------------------------------------------------
+MIT License
+
+Copyright (c) 2017-2026 W.Y.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+----------------------------------------------------------------------
+topojson-client - ISC License
+----------------------------------------------------------------------
+Copyright 2012-2019 Michael Bostock
+
+Permission to use, copy, modify, and/or distribute this software for any purpose
+with or without fee is hereby granted, provided that the above copyright notice
+and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+THIS SOFTWARE.
+
+----------------------------------------------------------------------
+us-atlas - ISC License
+----------------------------------------------------------------------
+Copyright 2013-2019 Michael Bostock
+
+Permission to use, copy, modify, and/or distribute this software for any purpose
+with or without fee is hereby granted, provided that the above copyright notice
+and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+THIS SOFTWARE.
+
+----------------------------------------------------------------------
+Leaflet - BSD 2-Clause License
+----------------------------------------------------------------------
+BSD 2-Clause License
+
+Copyright (c) 2010-2023, Volodymyr Agafonkin
+Copyright (c) 2010-2011, CloudMade
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

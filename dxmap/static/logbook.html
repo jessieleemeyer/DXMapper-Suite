@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>DX Mapper - Log Book</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body { margin: 0; font: 13px/1.35 "Segoe UI", Arial, sans-serif; background: #12171d; color: #dde5ec; }
+  header { position: sticky; top: 0; z-index: 2; display: flex; gap: 10px; align-items: center;
+           padding: 8px 12px; background: #1b2530; border-bottom: 2px solid #2a86d4; }
+  h1 { font-size: 18px; margin: 0 8px 0 0; }
+  #count, .hint { color: #8fa3b5; }
+  header input { margin-left: auto; width: 280px; padding: 5px 8px; border-radius: 4px;
+                 border: 1px solid #3a4a5a; background: #0f141a; color: inherit; }
+  button, select { padding: 5px 10px; border-radius: 4px; border: 1px solid #3a4a5a;
+           background: #24313e; color: inherit; cursor: pointer; }
+  button:hover { background: #2d3e4f; }
+  table { border-collapse: collapse; width: 100%; }
+  th { position: sticky; top: 45px; background: #1f3a57; color: #fff; text-align: left;
+       padding: 6px 8px; white-space: nowrap; cursor: pointer; user-select: none;
+       border-right: 1px solid #2c4b6b; }
+  th.sorted::after { content: " \25B2"; font-size: 10px; }
+  th.sorted.desc::after { content: " \25BC"; }
+  td { padding: 4px 8px; border-bottom: 1px solid #222c36; vertical-align: top; }
+  td.wrap { min-width: 180px; }
+  #clean-bar { width: 140px; }
+  tbody tr { cursor: pointer; }
+  tbody tr:nth-child(even) { background: #161d25; }
+  tbody tr:hover { background: #22323f; }
+  tbody tr.sel { background: #23415a; }
+  tbody { user-select: none; }
+  td.cs { background: #1d4c75 !important; box-shadow: inset 0 0 0 1px #5fb0ff; }
+  td input.ed { width: 100%; min-width: 80px; box-sizing: border-box; font: inherit; padding: 1px 4px;
+                background: #0f141a; color: inherit; border: 1px solid #5fb0ff; border-radius: 3px; }
+  td.num { text-align: right; white-space: nowrap; }
+  td.tick { text-align: center; color: #5fd38a; font-weight: 700; }
+  .hd { color: #ffcf5c; font-weight: 600; }
+  button.listen { padding: 2px 8px; font-size: 12px; background: #1f6f43; border-color: #2e9a5f; }
+  button.listen:hover { background: #26864f; }
+  #cols-dlg { background: #1b2530; color: inherit; border: 1px solid #3a4a5a; border-radius: 6px; min-width: 260px; }
+  #dupes-dlg { background: #1b2530; color: inherit; border: 1px solid #3a4a5a; border-radius: 6px; min-width: 360px; }
+  #dupes-dlg label { display: block; padding: 4px 0; cursor: pointer; }
+  #del-dlg { background: #1b2530; color: inherit; border: 2px solid #a33; border-radius: 6px; max-width: 420px; }
+  #del-dlg .row { margin-top: 12px; display: flex; gap: 8px; justify-content: flex-end; }
+  button.danger { background: #8b1e1e; border-color: #b33; color: #fff; }
+  button.danger:hover { background: #a82626; }
+  #dupes-dlg .row { margin-top: 10px; display: flex; gap: 8px; justify-content: flex-end; }
+  #cols-dlg label { display: block; padding: 3px 0; cursor: pointer; }
+  #cols-dlg .row { margin-top: 10px; display: flex; gap: 8px; justify-content: flex-end; }
+  #toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: #2a86d4;
+           color: #fff; padding: 8px 14px; border-radius: 6px; display: none; }
+
+  /* ---- view switch + Modern (card) view ---- */
+  .viewsw { display: inline-flex; border: 1px solid #3a4a5a; border-radius: 6px; overflow: hidden; }
+  .viewsw button { border: 0; border-radius: 0; background: #1b2530; padding: 5px 12px; }
+  .viewsw button.on { background: #2a86d4; color: #fff; }
+  body.modern .classic-only, body.modern #book { display: none !important; }
+  body:not(.modern) #modern { display: none; }
+  body.modern header { border-bottom-color: #2c3a48; }
+  #modern { padding: 14px 18px 24px; }
+  .m-top { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  #m-search { width: min(720px, 100%); font-size: 18px; padding: 11px 20px; border-radius: 24px;
+              border: 1px solid #3a4a5a; background: #0f141a; color: inherit; text-align: center; }
+  #m-search:focus { outline: none; border-color: #5fb0ff; box-shadow: 0 0 0 3px rgba(95,176,255,.25); }
+  .ticker { width: min(720px, 100%); overflow: hidden; white-space: nowrap; height: 24px; border-radius: 12px;
+            background: #0c1116; border: 1px solid #243140; font-size: 12px; color: #9fe0b4; }
+  .tk-in { display: inline-block; padding-left: 100%; line-height: 22px; animation: tick 18s linear infinite; }
+  .tk-in.still { padding-left: 12px; animation: none; color: #8fa3b5; }
+  @keyframes tick { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+  #m-tabs { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 16px 0 4px; }
+  #m-tabs button { --c: #3ddc84; display: flex; align-items: center; gap: 10px; padding: 10px 18px; font-size: 15px;
+                   border-radius: 10px; background: #1a232d; border: 2px solid #2c3a48; }
+  #m-tabs .t-ext, .card.t-ext, #m-panel.t-ext { --c: #ffbf3c; }
+  #m-tabs .t-dx, .card.t-dx, #m-panel.t-dx { --c: #3a9bff; }
+  .card.t-local, #m-panel.t-local { --c: #3ddc84; }
+  #m-tabs .t-all, .card.t-none, #m-panel.t-all { --c: #c9d4e0; }
+  .t-range { color: #8fa3b5; font-size: 12px; }
+  .t-badge { background: var(--c); color: #0b1015; font-weight: 700; border-radius: 10px; padding: 1px 9px;
+             min-width: 28px; text-align: center; font-size: 13px; }
+  #m-tabs button.on { border-color: var(--c); background: #1e2a36; animation: glow 2.4s ease-in-out infinite; }
+  @keyframes glow { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 50% { box-shadow: 0 0 16px 1px var(--c); } }
+  #m-note { text-align: center; min-height: 18px; margin: 4px 0 10px; }
+  #m-body { display: flex; gap: 16px; align-items: flex-start; }
+  #m-grid { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+  #m-empty { grid-column: 1 / -1; text-align: center; padding: 40px; color: #8fa3b5; }
+  .card { position: relative; height: 168px; border-radius: 12px; overflow: hidden; cursor: pointer;
+          background: linear-gradient(135deg, #1d2a38, #10161d); border: 1px solid #2a3846;
+          box-shadow: 0 4px 14px rgba(0,0,0,.35); transition: transform .15s, box-shadow .15s, border-color .15s; }
+  .card:hover { transform: translateY(-2px); border-color: var(--c); }
+  .card.sel { border-color: var(--c); box-shadow: 0 0 0 2px var(--c), 0 6px 18px rgba(0,0,0,.5); }
+  .card .bg { position: absolute; inset: -14px; background: center / cover no-repeat; filter: blur(12px) saturate(1.2); }
+  .card .lg { position: absolute; inset: 30px 26px 34px; background: center / contain no-repeat; }
+  .card .shade { position: absolute; inset: 0; background: rgba(0,0,0,.6); }
+  .card .ct { position: relative; height: 100%; box-sizing: border-box; display: flex; flex-direction: column; padding: 10px 12px;
+              color: #fff; text-shadow: 0 1px 3px #000, 0 0 8px rgba(0,0,0,.8); }
+  .c-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .c-freq { font-weight: 700; font-size: 14px; padding: 2px 8px; border: 1px solid rgba(255,255,255,.55);
+            border-radius: 6px; background: rgba(0,0,0,.35); white-space: nowrap; }
+  .c-call { font-size: 22px; font-weight: 800; letter-spacing: .5px; text-align: right; word-break: break-word; }
+  .c-city { font-size: 13px; margin-top: 4px; }
+  .pills { margin-top: auto; display: flex; flex-wrap: wrap; gap: 4px; }
+  .pill { font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 10px; text-shadow: none;
+          border: 1px solid rgba(255,255,255,.28); color: rgba(255,255,255,.4); background: rgba(0,0,0,.35); }
+  .pill.on { background: var(--c); border-color: var(--c); color: #0b1015; }
+  #m-panel { flex: 0 0 0; opacity: 0; overflow: hidden; transition: flex-basis .3s ease, opacity .3s;
+             position: sticky; top: 58px; max-height: calc(100vh - 70px); overflow-y: auto; overflow-x: hidden;
+             background: #1a222b; border: 0 solid #2c3a48; border-radius: 12px; }
+  body.panel-open #m-panel { flex-basis: 420px; opacity: 1; border-width: 1px; border-top: 3px solid var(--c); }
+  #p-body { min-width: 380px; box-sizing: border-box; padding: 14px 16px 18px; position: relative; }
+  @media (max-width: 1000px) { body.panel-open #m-panel { flex-basis: 340px; } #p-body { min-width: 320px; } }
+  #p-close { position: absolute; top: 8px; right: 8px; padding: 1px 9px; font-size: 16px; }
+  .p-logo { display: block; max-width: 100%; max-height: 140px; margin: 0 auto 10px; border-radius: 8px; }
+  .p-logo.none { display: none; }
+  .p-call { font-size: 26px; font-weight: 800; }
+  .p-freq { font-size: 16px; color: #8fa3b5; margin-left: 8px; font-weight: 600; }
+  .p-slogan { color: #ffcf5c; font-size: 14px; margin: 2px 0 8px; }
+  .p-btns { display: flex; gap: 8px; margin: 10px 0 4px; }
+  #m-panel h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--c);
+                margin: 16px 0 6px; border-bottom: 1px solid #2c3a48; padding-bottom: 3px; }
+  .p-kv { width: 100%; }
+  .p-kv td { border: 0; padding: 3px 0; }
+  .p-kv td:first-child { color: #8fa3b5; width: 42%; }
+  .p-hist { background: #0f141a; border: 1px solid #2c3a48; border-radius: 8px; padding: 10px 12px; line-height: 1.5; }
+  .p-hist a { color: #5fb0ff; }
+  .p-edit label { display: block; color: #8fa3b5; font-size: 12px; margin-top: 6px; }
+  .p-edit input { width: 100%; box-sizing: border-box; padding: 6px 8px; border-radius: 5px; border: 1px solid #3a4a5a;
+                  background: #0f141a; color: inherit; font: inherit; }
+  .p-edit .row2 { display: flex; gap: 8px; } .p-edit .row2 > div { flex: 1; }
+  button.primary { background: #1f6fb2; border-color: #2a86d4; }
+  @media print {
+    @page { size: landscape; margin: 10mm; }
+    body { background: #fff; color: #000; font-size: 9pt; }
+    header { position: static; background: #fff; border-bottom: 1px solid #000; }
+    header input, header button, header select, header progress, #clean-t, .hint, button.listen, .viewsw { display: none; }
+    #modern { display: none !important; }
+    td.cs { background: none !important; box-shadow: none; }
+    th { position: static; background: #1f3a57 !important; color: #fff !important;
+         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    tbody tr:nth-child(even) { background: #eef2f6 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    td { border-bottom: 1px solid #ccc; }
+    tr { break-inside: avoid; }
+  }
+  /* Station Details sections, the same as the map's panel */
+  #p-body .d-section { margin-top: 14px; }
+  #p-body .d-section h3 { margin: 0 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #7fd1ff;
+    border-bottom: 1px solid #2c3742; padding-bottom: 3px; cursor: pointer; user-select: none; }
+  #p-body .d-section h3::before { content: "\25BE  "; color: #5c7da0; }
+  #p-body .d-section.shut h3::before { content: "\25B8  "; }
+  #p-body .d-section.shut > :not(h3) { display: none; }
+  #p-body .d-section h4 { margin: 8px 0 4px; font-size: 11px; font-weight: 600; color: #93a3b1; text-transform: uppercase; letter-spacing: 1px; }
+  #p-body .checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px 12px; font-size: 13px; }
+  #p-body .ck span { display: inline-block; width: 1.4em; font-weight: 700; }
+  #p-body .ck-yes { color: #e8edf2; } #p-body .ck-yes span { color: #50fa7b; } #p-body .ck-no { color: #6b7a88; }
+  #p-body .mer-good { color: #50fa7b; } #p-body .mer-fair { color: #f1d36b; } #p-body .mer-weak { color: #ff6b6b; }
+  #p-body .feat-yes { color: #50fa7b; font-weight: 700; } #p-body .feat-odd { color: #ffb86c; } #p-body .feat-seen { color: #f1c40f; font-weight: 700; }
+  #p-body a.hd-link, #p-body .d-fullrep a, #p-body .links a { color: #7fd1ff; } #p-body .links a { margin-right: 10px; }
+  #p-body .d-fullrep { margin-top: 10px; font-weight: 600; }
+  #p-body table.kv { border-collapse: collapse; width: 100%; font-size: 13px; }
+  #p-body table.kv td { padding: 2px 4px; vertical-align: top; overflow-wrap: anywhere; }
+  #p-body table.kv td:first-child { color: #93a3b1; width: 42%; }
+  #p-body table.logs { width: 100%; border-collapse: collapse; font-size: 12px; }
+  #p-body table.logs th, #p-body table.logs td { text-align: left; padding: 3px 4px; border-bottom: 1px solid #26313b; vertical-align: top; }
+  #p-body table.logs th { color: #93a3b1; font-weight: 500; }
+  #p-body .muted { color: #8a9aa8; } #p-body .err { color: #ff9b9b; }
+  #p-body code.d-seq { font-family: Consolas, "Courier New", monospace; color: #39ff14; background: #05080d; padding: 1px 5px; border-radius: 3px; word-break: break-word; }
+  #p-body .d-badges { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+  #p-body .badge { padding: 2px 7px; border-radius: 3px; font-size: 12px; font-weight: 700; }
+  #p-body .b-ok { background: #2ecc71; color: #fff; } #p-body .b-part { background: #f1c40f; color: #000; }
+  #rep-dlg { background: #1b2530; color: inherit; border: 1px solid #3a4a5a; border-radius: 6px; max-width: 80vw; }
+  #rep-dlg pre { max-height: 70vh; overflow: auto; font-size: 12px; white-space: pre-wrap; }
+tr.vo td { font-style: italic; color: #777; }
+.vo-box { background: #8881; border-left: 3px solid #888; padding: 6px 8px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Log Book</h1>
+  <span class="viewsw" title="Switch between the spreadsheet and the card view (remembered)"><button data-view="classic">Classic</button><button data-view="modern">Modern</button></span>
+  <span id="count" class="classic-only"></span>
+  <span class="hint classic-only" title="Click a cell, then Shift-click, Ctrl-click or drag to pick more. Type (or double-click / F2) to change every picked cell, Delete to blank them.">Click a station to show it on the map. Pick cells and type to edit. Click a heading to sort.</span>
+  <select id="reach" class="classic-only" title="Which stations to show">
+    <option value="all">All stations</option>
+    <option value="local">Locals</option>
+    <option value="ext">Extended locals</option>
+    <option value="dx">DX</option>
+    <option value="hd">HD subchannels</option>
+  </select>
+  <input id="search" class="classic-only" type="search" placeholder="Search the log book…">
+  <button id="reset" class="classic-only" title="Put back what DX Mapper fills in for the picked cells">Undo my edits</button>
+  <button id="dupes" class="classic-only" title="Stations logged again on another frequency by splatter. Merge them (saves a copy first)">Duplicates…</button>
+  <button id="clean" class="classic-only" title="Delete old imported notes and columns that aren't Log Book columns, and tidy RadioText (saves a copy first)">Clean up</button>
+  <progress id="clean-bar" class="classic-only" max="1" value="0" hidden></progress><span id="clean-t" class="hint classic-only"></span>
+  <button id="cols" class="classic-only" title="Pick which columns the Log Book shows and prints">Columns…</button>
+  <button id="print" class="classic-only">Print</button>
+</header>
+<dialog id="cols-dlg">
+  <b>Columns to show</b>
+  <div class="hint">Saved in your settings folder. Excel export keeps every column.</div>
+  <div id="cols-list"></div>
+  <div class="row"><button id="cols-all">Show all</button><button id="cols-save">Save</button><button id="cols-cancel">Cancel</button></div>
+</dialog>
+<dialog id="dupes-dlg">
+  <b>Duplicate stations</b>
+  <div class="hint">The same call letters or PI listed more than once: twice on one frequency, or again on another frequency when a strong station splatters across the band. Merging moves every log into the station on the kept frequency. Translators are left alone.</div>
+  <div id="dupes-list"></div>
+  <div class="row"><button id="dupes-merge" class="primary">Merge ticked</button><button id="dupes-close">Close</button></div>
+</dialog>
+<dialog id="del-dlg">
+  <b id="del-title">Delete?</b>
+  <div id="del-text" class="hint" style="margin-top:6px"></div>
+  <div class="row"><button id="del-cancel">Cancel</button><button id="del-ok" class="danger">Delete</button></div>
+</dialog>
+<table id="book"><thead></thead><tbody></tbody></table>
+<div id="modern">
+  <div class="m-top">
+    <input id="m-search" type="search" placeholder="Search frequency, call letters, city or PI code…" autocomplete="off">
+    <div class="ticker" title="What the RDS Monitor is decoding right now"><span id="tk" class="tk-in still"></span></div>
+  </div>
+  <nav id="m-tabs">
+    <button data-tier="local" class="t-local"><span>Local</span><span class="t-range" id="r-local"></span><span class="t-badge" id="n-local">0</span></button>
+    <button data-tier="ext" class="t-ext"><span>Extended Local</span><span class="t-range" id="r-ext"></span><span class="t-badge" id="n-ext">0</span></button>
+    <button data-tier="dx" class="t-dx"><span>DX Catches</span><span class="t-range" id="r-dx"></span><span class="t-badge" id="n-dx">0</span></button>
+    <button data-tier="all" class="t-all" title="Every station on one grid; the card borders keep their distance colours"><span>Show all</span><span class="t-badge" id="n-all">0</span></button>
+  </nav>
+  <div id="m-note" class="hint"></div>
+  <div id="m-body"><div id="m-grid"></div>
+    <aside id="m-panel"><div id="p-body"></div></aside></div>
+</div>
+<div id="toast"></div>
+<script src="/static/details.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g,
+  (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+const B = {rows: [], all: [], hidden: [], cols: [], rev: null, sort: "freq", desc: false, sel: null, localMi: 40, extMi: 80,
+           view: [], cells: new Set(), anchor: null, drag: false, editing: false};
+const ck = (id, k) => id + "|" + k;
+const NUM = {freq: (r) => r.freq_mhz ?? (parseFloat(r.freq) || 9999),
+             distance: (r) => parseFloat(r.distance) || r.distance_mi || 0};
+const isTick = (k) => k.startsWith("rds_");
+
+function toast(msg) {
+  $("toast").textContent = msg;
+  $("toast").style.display = "block";
+  clearTimeout(B.toastTimer);
+  B.toastTimer = setTimeout(() => { $("toast").style.display = "none"; }, 2500);
+}
+
+function tierOf(r) {
+  const range = (r.range_type || "").toLowerCase();
+  const d = r.distance_mi;
+  return range.startsWith("local") ? "local"
+    : range.startsWith("ext") ? "ext" : range ? "dx"
+    : d == null ? null : d <= B.localMi ? "local" : d <= B.extMi ? "ext" : "dx";
+}
+
+// State / province abbreviations: "ky" finds Kentucky and "kentucky" finds KY.
+const PLACES = {"al":"alabama","ak":"alaska","az":"arizona","ar":"arkansas","ca":"california","co":"colorado","ct":"connecticut","de":"delaware","dc":"district of columbia","fl":"florida","ga":"georgia","hi":"hawaii","id":"idaho","il":"illinois","in":"indiana","ia":"iowa","ks":"kansas","ky":"kentucky","la":"louisiana","me":"maine","md":"maryland","ma":"massachusetts","mi":"michigan","mn":"minnesota","ms":"mississippi","mo":"missouri","mt":"montana","ne":"nebraska","nv":"nevada","nh":"new hampshire","nj":"new jersey","nm":"new mexico","ny":"new york","nc":"north carolina","nd":"north dakota","oh":"ohio","ok":"oklahoma","or":"oregon","pa":"pennsylvania","ri":"rhode island","sc":"south carolina","sd":"south dakota","tn":"tennessee","tx":"texas","ut":"utah","vt":"vermont","va":"virginia","wa":"washington","wv":"west virginia","wi":"wisconsin","wy":"wyoming","pr":"puerto rico","vi":"virgin islands","gu":"guam","ab":"alberta","bc":"british columbia","mb":"manitoba","nb":"new brunswick","nl":"newfoundland and labrador","ns":"nova scotia","nt":"northwest territories","nu":"nunavut","on":"ontario","pe":"prince edward island","qc":"quebec","sk":"saskatchewan","yt":"yukon"};
+const PLACE_ABBR = Object.fromEntries(Object.entries(PLACES).map(([a, n]) => [n, a]));
+function placeQuery(q) {  // "new york" -> "ny" so a two-word name is one word
+  let out = q.toLowerCase();
+  for (const [name, ab] of Object.entries(PLACE_ABBR))
+    if (name.includes(" ")) out = out.replace(new RegExp("\\b" + name + "\\b", "g"), ab);
+  return out;
+}
+function samePlace(state, w) {
+  const s = String(state || "").trim().toLowerCase().replace(/\.$/, "");
+  return !!s && (PLACES[w] === s || PLACES[s] === w || PLACE_ABBR[s] === w || PLACE_ABBR[w] === s);
+}
+
+function shown() {
+  const q = $("search").value.trim().toLowerCase();
+  const reach = $("reach").value;
+  let rows = B.rows.filter((r) => {
+    if (reach === "hd" && !/^HD\d/.test(r.hd)) return false;
+    if ((reach === "local" || reach === "ext" || reach === "dx") && tierOf(r) !== reach) return false;
+    // "TMC", "EON"... finds the stations with that RDS item ticked. Every
+    // word must be in some column, hidden ones too ("campbellsville ky").
+    const cols = B.all.length ? B.all : B.cols;
+    return !q || cols.some(([k, label]) => isTick(k) && r[k] && label.toLowerCase() === q)
+      || placeQuery(q).split(/\s+/).every((w) => samePlace(r.state, w) || cols.some(([k]) => !isTick(k)
+        && String(r[k] || "").toLowerCase().includes(w)));
+  });
+  const k = B.sort, num = NUM[k] || (isTick(k) ? (r) => (r[k] ? 0 : 1) : null);
+  rows.sort((a, b) => {
+    const x = num ? num(a) - num(b)
+      : String(a[k] || "").localeCompare(String(b[k] || ""), undefined, {numeric: true});
+    return (B.desc ? -x : x) || NUM.freq(a) - NUM.freq(b);
+  });
+  return rows;
+}
+
+function render() {
+  $("book").tHead.innerHTML = "<tr>" + B.cols.map(([k, label]) =>
+    `<th data-k="${k}" class="${k === B.sort ? "sorted" + (B.desc ? " desc" : "") : ""}">${esc(label)}</th>`).join("") + "</tr>";
+  const rows = shown();
+  B.view = rows;
+  const td = (r, k, cls, inner) => {
+    const c = [cls, B.cells.has(ck(r.id, k)) ? "cs" : ""].filter(Boolean).join(" ");
+    return `<td data-k="${k}"${c ? ` class="${c}"` : ""}>${inner}</td>`;
+  };
+  $("book").tBodies[0].innerHTML = rows.map((r) => "<tr data-id=\"" + r.id + "\"" +
+    (r.view_only ? ' title="From your ' + esc(r.log) + ' log - view only"' : "") +
+    (r.id === B.sel || r.view_only ? ' class="' + (r.id === B.sel ? "sel " : "") + (r.view_only ? "vo" : "") + '"' : "") + ">" + B.cols.map(([k]) => {
+      const v = esc(r[k]);
+      if (k === "freq" || k === "distance") return td(r, k, "num", v);
+      if (isTick(k)) return td(r, k, "tick", v);
+      if (k === "hd" && /^HD\d/.test(r.hd)) return td(r, k, "hd", v);
+      if (k === "slogan" || k === "radiotext" || k === "owner" || k === "notes" || k === "source") return td(r, k, "wrap", v);
+      if (k === "stream") return td(r, k, "", /^https?:\/\//.test(r.stream || "")
+        ? `<button class="listen" data-listen="${r.id}" title="Open the live stream in your web browser${r.stream_source ? " (from " + esc(r.stream_source) + ")" : ""}">Stream</button>` : "");
+      if (k === "website") return td(r, k, "", /^https?:\/\//.test(r.website || "")
+        ? `<button class="listen" data-listen="${r.id}" data-what="website" title="${esc(r.website)}">Website</button>` : "");
+      return td(r, k, "", v);
+    }).join("") + "</tr>").join("");
+  $("count").textContent = `${rows.length} of ${B.rows.length} station${B.rows.length === 1 ? "" : "s"}`;
+  renderModern();
+}
+
+async function load() {
+  if (B.editing) return;
+  try {
+    const r = await fetch("/api/logbook");
+    const data = await r.json();
+    const hidden = data.hidden || [];
+    const card = data.card;  // Open station card, from the map
+    if (card && card.at !== B.cardAt) {
+      if (B.cardAt !== undefined) showCard(card.id);
+      B.cardAt = card.at;
+    } else if (!card) B.cardAt = null;
+    if (data.rev === B.rev && hidden.join() === B.hidden.join()) return;
+    Object.assign(B, {rows: data.rows, all: data.columns, hidden, rev: data.rev,
+                      cols: data.columns.filter(([k]) => !hidden.includes(k)),
+                      localMi: data.local_mi || 40, extMi: data.ext_mi || 80});
+    $("cols").style.display = data.lite ? "none" : "";
+    if (!B.viewSet) {
+      B.viewSet = true;
+      if (QCARD) showCard(QCARD); else setView(data.view === "modern" ? "modern" : "classic", false);
+    }
+    render();
+    if (M.pending != null && B.rows.some((x) => x.id === M.pending)) openCard(M.pending, true);
+  } catch (e) {
+    $("count").textContent = "DX Mapper isn't running";
+  }
+}
+
+$("book").tHead.onclick = (e) => {
+  const th = e.target.closest("th");
+  if (!th) return;
+  B.desc = B.sort === th.dataset.k ? !B.desc : false;
+  B.sort = th.dataset.k;
+  render();
+};
+$("book").tBodies[0].onclick = async (e) => {
+  const listen = e.target.closest("button[data-listen]");
+  if (listen) {
+    try {
+      const r = await fetch("/api/listen", {method: "POST", headers: {"Content-Type": "application/json"},
+                                            body: JSON.stringify({id: Number(listen.dataset.listen), what: listen.dataset.what || "stream"})});
+      const data = await r.json();
+      toast(r.ok ? (listen.dataset.what ? "Opening the station's website…" : "Opening the live stream in your web browser…") : data.error);
+    } catch (err) {
+      toast("DX Mapper isn't running");
+    }
+    return;
+  }
+  const tr = e.target.closest("tr");
+  if (!tr || e.shiftKey || e.ctrlKey || e.metaKey || B.editing) return;
+  B.sel = Number(tr.dataset.id);
+  render();
+  const r = B.rows.find((x) => x.id === B.sel);
+  try {
+    await fetch("/api/focus", {method: "POST", headers: {"Content-Type": "application/json"},
+                               body: JSON.stringify({id: B.sel})});
+    toast(`${r.callsign || r.pi} ${r.freq} shown on the map`);
+  } catch (err) {
+    toast("DX Mapper isn't running");
+  }
+};
+// Picking cells: click, Shift-click / drag for a block, Ctrl-click to add.
+function at(e) {
+  const td = e.target.closest("td[data-k]");
+  return td && {id: Number(td.parentNode.dataset.id), k: td.dataset.k};
+}
+function block(a, b) {
+  const ids = B.view.map((r) => r.id), ks = B.cols.map(([k]) => k);
+  const [r1, r2] = [ids.indexOf(a.id), ids.indexOf(b.id)].sort((x, y) => x - y);
+  const [c1, c2] = [ks.indexOf(a.k), ks.indexOf(b.k)].sort((x, y) => x - y);
+  const out = [];
+  if (r1 < 0 || c1 < 0) return [ck(b.id, b.k)];
+  for (let i = r1; i <= r2; i++) for (let j = c1; j <= c2; j++) out.push(ck(ids[i], ks[j]));
+  return out;
+}
+function paint() {
+  for (const c of $("book").tBodies[0].querySelectorAll("td[data-k]"))
+    c.classList.toggle("cs", B.cells.has(ck(c.parentNode.dataset.id, c.dataset.k)));
+}
+$("book").tBodies[0].onmousedown = (e) => {
+  if (e.button !== 0 || B.editing || e.target.closest("button, input")) return;
+  const p = at(e);
+  if (!p) return;
+  if (e.shiftKey && B.anchor) {
+    B.cells = new Set([...(e.ctrlKey || e.metaKey ? B.cells : []), ...block(B.anchor, p)]);
+  } else if (e.ctrlKey || e.metaKey) {
+    const key = ck(p.id, p.k);
+    if (B.cells.has(key)) B.cells.delete(key); else B.cells.add(key);
+    B.anchor = p;
+  } else {
+    B.cells = new Set([ck(p.id, p.k)]);
+    B.anchor = p;
+    B.drag = true;
+  }
+  paint();
+};
+$("book").tBodies[0].onmouseover = (e) => {
+  if (!B.drag) return;
+  const p = at(e);
+  if (p) { B.cells = new Set(block(B.anchor, p)); paint(); }
+};
+document.addEventListener("mouseup", () => { B.drag = false; });
+$("book").tBodies[0].ondblclick = (e) => {
+  const p = at(e);
+  if (!p || e.target.closest("button")) return;
+  if (!B.cells.has(ck(p.id, p.k))) { B.cells = new Set([ck(p.id, p.k)]); paint(); }
+  B.anchor = p;
+  startEdit(null);
+};
+document.addEventListener("keydown", (e) => {
+  if (M.on && e.key === "Escape" && !e.target.closest("input, dialog")) { closePanel(); return; }
+  if (M.on || B.editing || !B.cells.size || e.target.closest("input, select, dialog")) return;
+  if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); save(""); }
+  else if (e.key === "F2" || e.key === "Enter") { e.preventDefault(); startEdit(null); }
+  else if (e.key === "Escape") { B.cells.clear(); paint(); }
+  else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); startEdit(e.key); }
+});
+function startEdit(first) {
+  const key = B.anchor && B.cells.has(ck(B.anchor.id, B.anchor.k)) ? ck(B.anchor.id, B.anchor.k) : [...B.cells][0];
+  const [id, k] = key.split("|");
+  if (isTick(k)) { toast("RDS ticks come from your RDS reports"); return; }
+  const cell = $("book").querySelector(`tr[data-id="${id}"] td[data-k="${k}"]`);
+  if (!cell) return;
+  const r = B.rows.find((x) => x.id === Number(id)) || {};
+  B.editing = true;
+  cell.innerHTML = '<input class="ed">';
+  const inp = cell.firstChild;
+  inp.value = first ?? (r[k] ?? "");
+  inp.focus();
+  if (first == null) inp.select();
+  let done = false;
+  const finish = (ok) => {
+    if (done) return;
+    done = true;
+    B.editing = false;
+    if (ok) save(inp.value); else render();
+  };
+  inp.onkeydown = (e) => {
+    e.stopPropagation();
+    if (e.key === "Enter") finish(true);
+    else if (e.key === "Escape") finish(false);
+  };
+  inp.onblur = () => finish(true);
+  inp.onmousedown = (e) => e.stopPropagation();
+}
+async function save(value) {
+  const cells = [...B.cells].map((c) => { const [id, k] = c.split("|"); return [Number(id), k]; })
+    .filter(([, k]) => !isTick(k));
+  if (!cells.length) { toast("RDS ticks come from your RDS reports"); return; }
+  const n = cells.length, s = n === 1 ? "" : "s";
+  try {
+    const r = await fetch("/api/logbook/edit", {method: "POST", headers: {"Content-Type": "application/json"},
+                                                body: JSON.stringify({cells, value})});
+    const data = await r.json();
+    toast(!r.ok ? (data.error || "Couldn't save")
+      : value === null ? `Put back ${n} cell${s}` : value === "" ? `Blanked ${n} cell${s}` : `Saved ${n} cell${s}`);
+  } catch (err) {
+    toast("DX Mapper isn't running");
+  }
+  B.rev = null;
+  load();
+}
+$("reset").onclick = () => B.cells.size ? save(null) : toast("Pick the cells to put back first");
+$("search").oninput = render;
+$("reach").onchange = render;
+$("print").onclick = () => window.print();
+$("cols").onclick = () => {
+  $("cols-list").innerHTML = B.all.map(([k, label]) =>
+    `<label><input type="checkbox" value="${esc(k)}"${B.hidden.includes(k) ? "" : " checked"}> ${esc(label)}</label>`).join("");
+  $("cols-dlg").showModal();
+};
+$("cols-all").onclick = () => { for (const c of $("cols-list").querySelectorAll("input")) c.checked = true; };
+$("cols-cancel").onclick = () => $("cols-dlg").close();
+$("cols-save").onclick = async () => {
+  const hidden = [...$("cols-list").querySelectorAll("input")].filter((c) => !c.checked).map((c) => c.value);
+  if (hidden.length === B.all.length) return toast("Keep at least one column");
+  try {
+    const r = await fetch("/api/settings", {method: "POST", headers: {"Content-Type": "application/json"},
+                                            body: JSON.stringify({logbook_hidden: hidden})});
+    if (!r.ok) return toast((await r.json()).error || "Couldn't save");
+    $("cols-dlg").close();
+    B.rev = null;
+    load();
+  } catch (err) {
+    toast("DX Mapper isn't running");
+  }
+};
+
+// ------------------------------------------------------------ Modern view ---
+// Cards by Local / Extended Local / DX with the logo as a dark backdrop, a
+// side panel for the picked station (follows the station open on the map).
+const M = {mapAt: undefined, on: false, tier: "local", open: null, pending: null, now: null, tk: ""};
+const QCARD = Number(new URLSearchParams(location.search).get("card")) || null;
+if (QCARD) history.replaceState(null, "", location.pathname);
+function showCard(id) {
+  B.viewSet = true;
+  if (!M.on) setView("modern", true);
+  if (B.rows.some((x) => x.id === id)) openCard(id, true);
+  else { M.pending = id; B.rev = null; }
+  window.focus();
+}
+const CARD_PILLS = [["PI", "rds_pi"], ["PTY", "rds_pty"], ["RT", "rds_rt"], ["RT+", "rds_rtplus"],
+                    ["iTunes", "rds_itunes"], ["TMC", "rds_tmc"]];
+// Call letters with the subchannel on the end (WXYZ-HD2), also when only
+// the sheet's HD column says which one it is.
+const listedCall = (r) => {
+  const c = r.callsign || "", m = /^HD([2-8])\b/i.exec(r.hd || "");
+  return m && c && !/-HD\d$/i.test(c) ? `${c}-HD${m[1]}` : c;
+};
+const baseCall = (c) => String(c || "").replace(/-HD[1-8]$/i, "");
+const logoUrl = (c) => "/api/logo/" + encodeURIComponent(c);
+const logoCss = (c) => !c ? "none" : /-HD[2-8]$/i.test(c)
+  ? `url("${logoUrl(c)}"), url("${logoUrl(baseCall(c))}")` : `url("${logoUrl(c)}")`;
+
+async function delJson(url) {
+  const r = await fetch(url, {method: "DELETE"});
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "Couldn't delete that");
+  return data;
+}
+
+const fmtFreqLb = (f) => f ? Number(f).toFixed(1) : "";
+
+// Confirmation popup: resolves true only when Delete is clicked.
+function askDelete(title, text) {
+  const dlg = $("del-dlg");
+  $("del-title").textContent = title;
+  $("del-text").textContent = text;
+  return new Promise((done) => {
+    const finish = (ok) => { dlg.onclose = null; dlg.close(); done(ok); };
+    $("del-ok").onclick = () => finish(true);
+    $("del-cancel").onclick = () => finish(false);
+    dlg.onclose = () => done(false);
+    dlg.showModal();
+    $("del-cancel").focus();
+  });
+}
+
+async function postJson(url, body) {
+  const r = await fetch(url, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || "Couldn't do that");
+  return data;
+}
+
+function setView(v, save) {
+  M.on = v === "modern";
+  document.body.classList.toggle("modern", M.on);
+  for (const b of document.querySelectorAll(".viewsw button")) b.classList.toggle("on", b.dataset.view === v);
+  if (M.on) { B.cells.clear(); paint(); pollNow(); }
+  if (save) postJson("/api/settings", {logbook_view: v}).catch((e) => toast(e.message));
+}
+for (const b of document.querySelectorAll(".viewsw button")) b.onclick = () => setView(b.dataset.view, true);
+
+// Forgiving search: every word must be found in the frequency, call
+// letters, city, state, PI code or slogan - letters in order ("wxz" finds
+// WXYZ) or one typo in a longer word ("sprinfield") also count.
+function near(a, b) {
+  if (Math.abs(a.length - b.length) > 1) return false;
+  let i = 0, j = 0, edits = 0;
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) { i++; j++; continue; }
+    if (++edits > 1) return false;
+    if (a.length > b.length) i++; else if (b.length > a.length) j++; else { i++; j++; }
+  }
+  return edits + (a.length - i) + (b.length - j) <= 1;
+}
+function inOrder(word, text) {
+  let i = 0;
+  for (const ch of text) if (ch === word[i]) i++;
+  return i === word.length;
+}
+function matches(r, q) {
+  if (!q) return true;
+  const freq = String(r.freq || ""), call = String(r.callsign || "").toLowerCase();
+  const hay = [freq, freq.replace(".", ""), call, r.city, r.state, r.pi, r.slogan].join(" ").toLowerCase();
+  const words = hay.split(/[^a-z0-9.]+/).filter(Boolean);
+  return placeQuery(q).split(/\s+/).filter(Boolean).every((w) => hay.includes(w) || samePlace(r.state, w)
+    || (w.length >= 2 && /[a-z]/.test(w) && inOrder(w, call))
+    || (w.length >= 4 && words.some((x) => x.length >= 4 && near(w, x))));
+}
+
+function renderModern() {
+  if (!$("m-grid")) return;
+  const q = $("m-search").value.trim();
+  const tiers = {local: [], ext: [], dx: []};
+  let noDist = 0;
+  for (const r of B.rows) {
+    const t = tierOf(r);
+    if (tiers[t]) tiers[t].push(r); else noDist++;
+  }
+  for (const t of Object.keys(tiers)) $("n-" + t).textContent = tiers[t].length;
+  tiers.all = B.rows;
+  $("n-all").textContent = B.rows.length;
+  const lo = Math.round(B.localMi), ex = Math.round(B.extMi);
+  $("r-local").textContent = `0–${lo} mi`;
+  $("r-ext").textContent = `${lo + 1}–${ex} mi`;
+  $("r-dx").textContent = `${ex + 1} mi+`;
+  for (const b of $("m-tabs").children) b.classList.toggle("on", b.dataset.tier === M.tier);
+  const rows = tiers[M.tier].filter((r) => matches(r, q)).sort((a, b) => NUM.freq(a) - NUM.freq(b));
+  const note = [];
+  if (q) {
+    note.push(`${rows.length} of ${tiers[M.tier].length} match`);
+    const other = M.tier === "all" ? [] : ["local", "ext", "dx"].filter((t) => t !== M.tier)
+      .map((t) => [t, tiers[t].filter((r) => matches(r, q)).length]).filter(([, n]) => n);
+    if (other.length) note.push("also " + other.map(([t, n]) => `${n} in ${({local: "Local", ext: "Extended Local", dx: "DX"})[t]}`).join(", "));
+  }
+  if (noDist && M.tier !== "all") note.push(`${noDist} station${noDist === 1 ? " has" : "s have"} no distance yet (Show all and Classic show ${noDist === 1 ? "it" : "them"})`);
+  $("m-note").textContent = note.join(" · ");
+  $("m-grid").innerHTML = rows.length ? rows.map((r) => {
+    const call = listedCall(r);
+    return `<div class="card t-${tierOf(r) || "none"}${r.id === M.open ? " sel" : ""}" data-id="${r.id}" title="Open ${esc(call || r.pi || "this station")}">
+      <div class="bg" style='background-image:${logoCss(call)}'></div><div class="lg" style='background-image:${logoCss(call)}'></div><div class="shade"></div>
+      <div class="ct"><div class="c-row"><span class="c-freq">${esc(r.freq)} MHz</span><span class="c-call">${esc(call || r.pi || "?")}</span></div>
+        <div class="c-city">${esc([r.city, r.state].filter(Boolean).join(", "))}</div>
+        <div class="pills">${CARD_PILLS.map(([n, k]) => `<span class="pill${r[k] ? " on" : ""}" title="${n} ${r[k] ? "decoded" : "not decoded yet"}">${n}</span>`).join("")}</div></div></div>`;
+  }).join("") : `<div id="m-empty">${q ? "No station here matches your search." : "No stations in this tab yet."}</div>`;
+}
+
+$("m-search").oninput = renderModern;
+
+$("m-tabs").onclick = (e) => {
+  const b = e.target.closest("button[data-tier]");
+  if (b) { M.tier = b.dataset.tier; renderModern(); }
+};
+$("m-grid").onclick = (e) => {
+  const c = e.target.closest(".card");
+  if (c) openCard(Number(c.dataset.id), false);
+};
+
+function closePanel() {
+  M.open = null;
+  document.body.classList.remove("panel-open");
+  renderModern();
+}
+
+function isNow(r) {
+  const n = M.now;
+  if (!n || !r) return false;
+  const sameFreq = n.freq_mhz != null && r.freq_mhz != null && Math.abs(n.freq_mhz - r.freq_mhz) < 0.05;
+  return n.callsign && r.callsign ? n.callsign.toUpperCase() === r.callsign.toUpperCase()
+    : !!(n.pi && r.pi && n.pi.toUpperCase() === r.pi.toUpperCase() && sameFreq);
+}
+function trackText(n) {
+  if (!n) return "";
+  const who = [n.callsign || n.ps, n.freq_mhz ? Number(n.freq_mhz).toFixed(1) : null].filter(Boolean).join(" ");
+  return (n.now_playing ? `now playing: ${n.now_playing}` : n.rt ? `RadioText: ${n.rt}` : "tuned, no song info yet")
+    + (who ? `   ·   ${who}` : "");
+}
+function setTicker(el, text, idle) {
+  if (el.dataset.text === (text || idle)) return;
+  el.dataset.text = text || idle;
+  el.textContent = text || idle;
+  el.classList.toggle("still", !text);
+  el.style.animationDuration = Math.max(10, (text || "").length * 0.2) + "s";
+}
+
+async function openCard(id, auto) {
+  const r = B.rows.find((x) => x.id === id);
+  if (!r) { M.pending = id; return; }
+  M.pending = null;
+  const tier = tierOf(r);
+  if (auto && tier && tier !== M.tier && M.tier !== "all") M.tier = tier;
+  if (auto && !matches(r, $("m-search").value.trim())) $("m-search").value = "";
+  M.open = id;
+  document.body.classList.add("panel-open");
+  renderModern();
+  const card = $("m-grid").querySelector(`.card[data-id="${id}"]`);
+  if (card) card.scrollIntoView({block: "nearest", behavior: "smooth"});
+  if (!auto) fetch("/api/focus", {method: "POST", headers: {"Content-Type": "application/json"},
+                                  body: JSON.stringify({id})}).catch(() => {});
+  let st = {};
+  try { st = await (await fetch("/api/station/" + id)).json(); } catch (e) { /* show what the row has */ }
+  if (M.open !== id) return;
+  renderPanel(r, st || {});
+}
+
+// Every Log Book column you can type in (RDS ticks come from your reports).
+const editCols = () => (B.all || []).filter(([k]) => !isTick(k));
+
+function showReport(lg) {
+  let d = $("rep-dlg");
+  if (!d) { d = document.createElement("dialog"); d.id = "rep-dlg"; document.body.appendChild(d); }
+  d.innerHTML = `<b>RDS report – ${esc(lg.start_ts ? new Date(lg.start_ts * 1000).toLocaleString() : "")}</b>
+    <pre>${esc(lg.details.report)}</pre><div class="p-btns"><button id="rep-close">Close</button></div>`;
+  $("rep-close").onclick = () => d.close();
+  d.showModal();
+}
+
+function renderPanel(r, st) {
+  const call = listedCall(r), D = DXDetails.build(st, {units: M.units, manage: true});
+  const url = (k) => /^https?:\/\//i.test(D.book[k] || r[k] || "") ? (D.book[k] || r[k]) : "";
+  const panel = $("m-panel");
+  panel.className = "t-" + (tierOf(r) || "all");
+  $("p-body").innerHTML = `<button id="p-close" title="Close (Esc)">×</button>
+    ${call ? `<img class="p-logo" src="${logoUrl(call)}" alt="" onerror="if(!this.dataset.b&&/-HD[2-8]$/i.test('${esc(call)}')){this.dataset.b=1;this.src='${logoUrl(baseCall(call))}'}else{this.classList.add('none')}">` : ""}
+    <div><span class="p-call">${esc(call || r.pi || "?")}</span><span class="p-freq">${esc(r.freq)} MHz</span></div>
+    ${r.slogan ? `<div class="p-slogan">${esc(r.slogan)}</div>` : ""}
+    <div class="ticker" title="Live song / RadioText while the RDS Monitor decodes this station"><span id="p-tk" class="tk-in still"></span></div>
+    <div class="p-btns">${r.freq_mhz ? '<button class="primary" id="p-tune" title="Tune the FM Tuner to this station">Tune</button>' : ""}
+      ${r.has_coords ? '<button id="p-map" title="Show this station on the DX Mapper map">Show on map</button>' : ""}
+      ${url("stream") ? `<a class="btn" href="${esc(url("stream"))}" target="_blank"><button title="Listen to the live internet stream in your web browser">Stream</button></a>` : ""}
+      ${url("website") ? `<a class="btn" href="${esc(url("website"))}" target="_blank"><button title="${esc(url("website"))}">Website</button></a>` : ""}</div>
+    ${D.badgeHtml ? `<div class="d-badges"><span class="muted">Decode:</span>${D.badgeHtml}</div>` : ""}
+    ${D.copyHtml}${D.bookHtml}${D.fullRep}${D.analogHtml}${D.hdHtml}${D.locHtml}${D.extraHtml}
+    <div class="d-section" data-fold="history"><h3>History</h3><div class="p-hist" id="p-hist">${call ? "Looking up Wikipedia…" : "Add call letters below to look it up."}</div></div>
+    ${D.logsHtml}
+    ${DXDetails.NB_BOX}
+    <div class="d-section" data-fold="lb-edit"${st.view_only ? ' style="display:none"' : ""}><h3>Edit info</h3><div class="p-edit">
+      ${editCols().map(([k, label]) => `<label for="pe-${k}">${esc(label)}</label><input id="pe-${k}" data-k="${k}" value="${esc(r[k] ?? "")}">`).join("")}
+      <div class="p-btns"><button class="primary" id="p-save">Save</button>
+        <span class="hint">Saves into your Log Book row, like typing in the Classic view. A blank box blanks that cell.</span></div>
+      <div class="p-btns"><button class="danger" id="p-del" title="Delete this station and all its log entries">Delete station</button></div></div></div>`;
+  panelTicker();
+  $("p-close").onclick = closePanel;
+  if ($("p-tune")) $("p-tune").onclick = () => postJson("/api/tune", {freq_mhz: r.freq_mhz})
+    .then((x) => toast(`Tuned to ${Number(x.frequency_mhz).toFixed(1)} MHz`)).catch((e) => toast(e.message));
+  if ($("p-map")) $("p-map").onclick = () => postJson("/api/focus", {id: r.id})
+    .then(() => toast(`${call || r.pi} shown on the map`)).catch((e) => toast(e.message));
+  $("p-save").onclick = () => saveEdits(r);
+  const name = `${call || r.pi || "this station"} ${fmtFreqLb(r.freq_mhz)}`.trim();
+  $("p-del").onclick = async () => {
+    const n = D.logs.length;
+    if (!await askDelete(`Delete ${name}?`, `This deletes the station and ${n === 1 ? "its only log entry" : `all ${n} of its log entries`} from your Log Book. This can't be undone.`)) return;
+    try { await delJson(`/api/station/${r.id}`); toast(`Deleted ${name}`); } catch (e) { return toast(e.message); }
+    closePanel(); B.rev = null; await load();
+  };
+  const body = $("p-body");
+  for (const b of body.querySelectorAll("[data-log]")) b.onclick = async () => {
+    const lg = D.logs.find((x) => String(x.id) === b.dataset.log);
+    const when = lg && lg.start_ts ? new Date(lg.start_ts * 1000).toLocaleString() : "";
+    if (!await askDelete("Delete this log entry?", `The ${when} log of ${name} is deleted. The station and its other logs stay. This can't be undone.`)) return;
+    try { await delJson(`/api/log/${b.dataset.log}`); toast("Log entry deleted"); } catch (e) { return toast(e.message); }
+    B.rev = null; await load();
+    if (M.open === r.id && B.rows.some((x) => x.id === r.id)) openCard(r.id, false); else closePanel();
+  };
+  for (const b of body.querySelectorAll("[data-copy],[data-copylog]")) b.onclick = async () => {
+    b.disabled = true;
+    try { toast(DXDetails.copiedText(await postJson("/api/logbooks/copy",
+      b.dataset.copy ? {id: Number(b.dataset.copy)} : {log_id: Number(b.dataset.copylog)}))); }
+    catch (e) { b.disabled = false; return toast(e.message); }
+    closePanel(); B.rev = null; await load();
+  };
+  if ($("d-fullrep")) $("d-fullrep").onclick = (e) => { e.preventDefault(); showReport(D.repLog); };
+  for (const b of body.querySelectorAll("[data-report]"))
+    b.onclick = () => showReport(D.logs.find((lg) => String(lg.id) === b.dataset.report));
+  for (const a of body.querySelectorAll(".hd-link")) a.onclick = (e) => {
+    e.preventDefault();
+    const id = Number(a.dataset.id);
+    if (B.rows.some((x) => x.id === id)) openCard(id, false); else toast("That station isn't in your Log Book");
+  };
+  if ($("d-fcc")) $("d-fcc").onclick = async () => {
+    $("d-fcc").disabled = true; $("d-fcc").textContent = "Looking up…";
+    try { await postJson(`/api/station/${r.id}/fcc`, {}); } catch (e) { toast(e.message); }
+    if (M.open === r.id) openCard(r.id, false);
+  };
+  // Fold a section by clicking its heading; shared with the map's panel.
+  const shut = new Set(JSON.parse(localStorage.getItem("dxmap.detailsShut") || "[]"));
+  for (const sec of body.querySelectorAll(".d-section")) {
+    const h = sec.querySelector("h3");
+    const key = sec.dataset.fold || h.textContent.replace(/\(.*?\)/g, "").trim().toLowerCase();
+    sec.classList.toggle("shut", shut.has(key));
+    h.title = "Click to fold / unfold";
+    h.onclick = () => {
+      if (shut.has(key)) shut.delete(key); else shut.add(key);
+      sec.classList.toggle("shut", shut.has(key));
+      localStorage.setItem("dxmap.detailsShut", JSON.stringify([...shut]));
+    };
+  }
+  for (const inp of $("p-body").querySelectorAll(".p-edit input"))
+    inp.onkeydown = (e) => { if (e.key === "Enter") saveEdits(r); };
+  if (call) fetch(`/api/station/${r.id}/summary`).then((x) => x.json()).then((d) => {
+    if (M.open !== r.id || !$("p-hist")) return;
+    const s = d.summary;
+    $("p-hist").innerHTML = s ? `${esc(s.text)}<div style="margin-top:6px"><a href="${esc(s.url)}" target="_blank">Read more on Wikipedia</a></div>`
+      : d.error ? esc(d.error) : "No Wikipedia article found for this station.";
+  }).catch(() => { if ($("p-hist")) $("p-hist").textContent = "Couldn't reach Wikipedia."; });
+  fetch(`/api/station/${r.id}/neighbors`).then((x) => x.json()).then((d) => {
+    const box = $("d-nb");
+    if (M.open !== r.id || !box) return;
+    box.className = ""; box.innerHTML = DXDetails.neighborsHtml(d);
+    for (const a of box.querySelectorAll(".hd-link")) a.onclick = (e) => {
+      e.preventDefault();
+      const id = Number(a.dataset.id);
+      if (B.rows.some((x) => x.id === id)) openCard(id, false); else toast("That station isn't in your Log Book");
+    };
+  }).catch(() => { if ($("d-nb")) $("d-nb").textContent = "Couldn't look these up."; });
+}
+
+function panelTicker() {
+  const el = $("p-tk");
+  if (!el) return;
+  const r = B.rows.find((x) => x.id === M.open);
+  setTicker(el, isNow(r) ? trackText(M.now) : "", r && r.radiotext ? `RadioText: ${r.radiotext}` : "Not on the air right now");
+}
+
+async function saveEdits(r) {
+  const changed = [...$("p-body").querySelectorAll(".p-edit input")]
+    .filter((inp) => inp.value.trim() !== String(r[inp.dataset.k] ?? ""));
+  if (!changed.length) return toast("Nothing changed");
+  try {
+    for (const inp of changed) await postJson("/api/logbook/edit", {cells: [[r.id, inp.dataset.k]], value: inp.value.trim()});
+    toast(`Saved ${changed.length} change${changed.length === 1 ? "" : "s"}`);
+  } catch (e) { toast(e.message); }
+  B.rev = null;
+  await load();
+  if (M.open === r.id) openCard(r.id, false);
+}
+
+async function pollNow() {
+  if (!M.on) return;
+  clearTimeout(M.timer);
+  try {
+    const s = await (await fetch("/api/state")).json();
+    M.units = (s.settings || {}).signal_units;
+    M.now = s.now;
+    setTicker($("tk"), trackText(s.now), "Nothing on the air right now - start the RDS Monitor to see the song here");
+    panelTicker();
+    // Follows the map: whatever station DX Mapper opens (a click, Jump to
+    // new logs, Follow tuner) opens here too.
+    const pick = s.map_pick;
+    if (M.mapAt !== undefined && pick && pick.at !== M.mapAt && pick.id !== M.open) {
+      if (B.rows.some((x) => x.id === pick.id)) openCard(pick.id, true);
+      else { B.rev = null; M.pending = pick.id; load(); }
+    }
+    M.mapAt = pick ? pick.at : null;
+  } catch (e) {
+    setTicker($("tk"), "", "DX Mapper isn't running");
+  }
+  M.timer = setTimeout(pollNow, 3000);
+}
+load();
+const dupeName = (x) => `${esc(x.callsign || x.pi || "?")} ${Number(x.freq_mhz).toFixed(1)}`;
+async function showDupes() {
+  let pairs;
+  try { pairs = (await (await fetch("/api/logbook/dupes")).json()).pairs || []; }
+  catch (e) { return toast("DX Mapper isn't running"); }
+  $("dupes-list").innerHTML = pairs.length ? pairs.map((p, i) => `<label><input type="checkbox" data-i="${i}" checked>
+    Keep <b>${dupeName(p.keep)}</b>${p.keep.location ? ` (${esc(p.keep.location)})` : ""}${p.keep.fcc ? " (FCC)" : ""}, ${p.keep.times_logged} log${p.keep.times_logged === 1 ? "" : "s"}
+    · merge in ${dupeName(p.drop)}${p.drop.location ? ` (${esc(p.drop.location)})` : ""}, ${p.drop.times_logged} log${p.drop.times_logged === 1 ? "" : "s"}</label>`).join("")
+    : "<p>No duplicates found.</p>";
+  $("dupes-merge").hidden = !pairs.length;
+  $("dupes-merge").onclick = async () => {
+    const pick = [...$("dupes-list").querySelectorAll("input:checked")].map((c) => pairs[c.dataset.i]);
+    if (!pick.length) return toast("Nothing ticked");
+    try {
+      const r = await postJson("/api/logbook/dupes", {pairs: pick.map((p) => [p.keep.id, p.drop.id])});
+      toast(`Merged ${r.merged} duplicate${r.merged === 1 ? "" : "s"}. A copy from before is in settings\\Backups.`);
+    } catch (e) { toast(e.message); }
+    $("dupes-dlg").close();
+    B.rev = null; load();
+  };
+  $("dupes-dlg").showModal();
+}
+$("dupes").onclick = showDupes;
+$("dupes-close").onclick = () => $("dupes-dlg").close();
+async function cleanupStatus() {
+  try {
+    const job = await (await fetch("/api/logbook/cleanup")).json();
+    const bar = $("clean-bar"), t = $("clean-t");
+    if (job.state === "running") {
+      B.cleaning = true;
+      $("clean").disabled = true;
+      bar.hidden = false;
+      bar.max = job.total || 1;
+      bar.value = job.done || 0;
+      t.textContent = job.total ? `Cleaning ${job.done} of ${job.total}…` : "Cleaning…";
+      setTimeout(cleanupStatus, 400);
+    } else if (B.cleaning) {
+      B.cleaning = false;
+      $("clean").disabled = false;
+      bar.hidden = true;
+      t.textContent = "";
+      toast(job.state === "done" ? `Cleaned up ${job.stations} stations. A copy from before is in settings\\Backups.`
+                                 : (job.error || "Clean up didn't finish"));
+      B.rev = null;
+      load();
+    }
+  } catch (err) {
+    setTimeout(cleanupStatus, 2000);
+  }
+}
+$("clean").onclick = async () => {
+  if (!confirm("Clean up PERMANENTLY DELETES the old imported Notes and every imported column that isn't a Log Book column, " +
+               "and tidies RadioText.\n\nYour Log Book columns and the Notes you type in the Notes column are kept. " +
+               "A copy of your log is saved in settings\\Backups first, so Backup… can put it back.\n\nClean up now?")) return;
+  try {
+    const r = await fetch("/api/logbook/cleanup", {method: "POST", headers: {"Content-Type": "application/json"}, body: "{}"});
+    const data = await r.json();
+    if (!r.ok) return toast(data.error || "Couldn't start Clean up");
+    B.cleaning = true;
+    cleanupStatus();
+  } catch (err) {
+    toast("DX Mapper isn't running");
+  }
+};
+cleanupStatus();
+setInterval(load, 5000);
+</script>
+</body>
+</html>

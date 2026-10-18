@@ -1,0 +1,14 @@
+# PI Code Overrides File
+# =====================
+# Add PI codes that can't be decoded by the NRSC-4-B algorithm.
+# These include: 3-letter callsigns, translators, boosters, non-US stations.
+#
+# Format: PI_CODE CALLSIGN
+# PI code is 4 hex digits (uppercase), callsign is 3-4 letters.
+# Lines starting with # are comments.
+#
+# Examples (uncomment and edit as needed):
+# A1B2 WXYZ
+# C3D4 KABC
+# 9950 WBBM
+# 9951 WCBS

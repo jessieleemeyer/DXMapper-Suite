@@ -1,0 +1,275 @@
+QUICK START - DXMapper Suite: FM Tuner, RDS Monitor and DX Mapper
+==================================================================
+
+One radio program in three parts. Each part also runs on its own, and each
+folder has a README.md with every detail and option if you want to
+experiment.
+
+  FM Tuner     the radio: the only program that uses the RTL-SDR dongle.
+               Tuning, audio, waterfall, MPX/SCA, RDS decoding.
+  RDS Monitor  shows the station's RDS: PI, PS, RadioText, call letters,
+               slogan, city, range and distance (e.g. "Extended local ·
+               66.2 mi"), logo, reports, Log to Map.
+  DX Mapper    your log on a map: every station and every catch, station
+               details, Excel copy, backups, Tune and Stream buttons.
+
+
+INSTALL (ONE ZIP)
+-----------------
+DXMapper Suite is one program in one folder; the FM Tuner, RDS Monitor and
+DX Mapper are its three windows. The ZIP holds one folder, "DXMapper
+Suite". Extract the ZIP into C:\ (or wherever you keep programs) and you get:
+
+  C:\DXMapper Suite\Start Radio.pyw   every day: opens all three
+  C:\DXMapper Suite\FM_Tuner.py   quick launch: just the radio
+  C:\DXMapper Suite\RDS Monitor.py   quick launch: just the RDS display
+  C:\DXMapper Suite\DX Mapper.py   quick launch: just the map log
+  C:\DXMapper Suite\settings   all your data (never in the ZIP)
+
+(In Windows "Extract All", change the path to C:\ so you don't get the
+folder twice. Updating: extract to the same place, over the old copy.)
+
+Coming from an older copy without the DXMapper Suite folder: rename your
+radio folder (e.g. C:\Radio) to "DXMapper Suite" first, then extract. On
+first start your settings from the old FM-Tuner, RDS-Monitor and DX-Mapper
+folders (and rtlsdr.dll) are COPIED into the one settings folder. The old
+folders are left alone, so you can go back; delete them once it all works.
+
+First time only:
+1. Install Python 3.10+ (64-bit) from python.org, tick "Add python.exe to
+   PATH" (details: INSTALL.txt, FM Tuner step 1).
+2. Double-click "Install All.bat" - installs everything for all three.
+3. FM Tuner only: run Zadig once (WinUSB driver) and copy rtlsdr.dll +
+   libusb-1.0.dll into the DXMapper Suite folder. Install All.bat tells you if they are
+   missing; INSTALL.txt (FM Tuner steps 3-4) shows how.
+   Using a HackRF instead: INSTALL.txt, FM Tuner step 4a. HackRF/SoapySDR
+   support is EXPERIMENTAL until it is fixed; an RTL-SDR is supported.
+
+INSTALL.txt has the detailed steps; docs\ has each program's README.
+
+
+EVERY DAY
+---------
+Double-click "Start Radio.pyw": it opens the FM Tuner, then the RDS
+Monitor, then DX Mapper, with no console windows. The monitor connects to
+the tuner by itself (if not: Input > FM Tuner (TCP)).
+
+Or double-click just the one you want (tuner first if you want all three):
+1. FM Tuner     FM_Tuner.py
+2. RDS Monitor  "RDS Monitor.py"
+3. DX Mapper    "DX Mapper.py"
+
+Tune in the FM Tuner, or with a Tune button in DX Mapper.
+
+
+LOGGING A CATCH
+---------------
+* RDS Monitor: press Log to Map (or Ctrl+L).
+* Or turn on Tools > Auto-log to DX Mapper (off by default). It logs a
+  station once enough RDS is decoded and keeps updating that same log entry
+  while you stay on it (new ODAs, AF, RT+, Long PS ...). Nothing decoded
+  earlier is ever lost.
+* DX Mapper fills in the rest: FCC transmitter site, distance, slogan
+  (Wikipedia ones are marked "from Wikipedia"), logo.
+
+
+LOG BOOK
+--------
+DX Mapper > Log Book opens your log like your spreadsheet: one row per
+station, with Frequency, Call Letters, HD, Slogan / Format, PI Code, City,
+State, Calibrated Distance, Range Type, Owner / Licensee, Time Decoding,
+RT+ Capabilities, RadioText and Live Stream. Search it, sort it, print it.
+Click a station to show it on the map. Imported HD2/HD3 rows are their own
+stations. Columns... picks which columns show and print (saved in your
+settings folder; Excel export keeps them all).
+
+!! DX Log.xlsx IS A COPY FOR VIEWING. EDITS TYPED INTO IT IN EXCEL ARE NOT
+!! READ BACK AND GET OVERWRITTEN. Make changes in DX Mapper, or bring an
+!! edited sheet in with Import... (Excel or Google Sheets). An import only
+!! fills blanks; it never replaces what your log already has.
+
+MODERN VIEW: the Classic | Modern switch by the Log Book title flips to
+station cards: search box, now-playing bar, Local / Extended Local / DX /
+Show all tabs, and PI PTY RT RT+ iTunes TMC lights on each card. Click a
+card for the station panel (same sections as Station Details, Edit info,
+Delete station with a confirmation popup). It follows the map, and "Open
+station card" in Station Details jumps to the card. Regular stations are
+just call letters (WAPD); HD2-HD8 show as WAPD-HD2 on their own card.
+
+DOUBLES: auto logs of a PI already in your log on another frequency
+(splatter) join that station; pressing Log in the RDS Monitor always logs
+where you're tuned. Classic > Duplicates... merges any doubles already
+there (it saves a backup first). Owner's Manual 6.5 has the details.
+
+STREAM vs TUNE: Tune sets the FM Tuner to the station off the air. Stream
+(only on stations with a stream link) opens the station's internet stream
+in your web browser - in the station list, the station's details and the
+Log Book's Live Stream column. Stream links are looked up on Radio Browser,
+iHeartRadio, TuneIn and the station's Wikipedia page (its Webcast line), and
+failing those, the Listen Live link on the station's own website - when a
+station is first logged; not every station has one.
+
+WEBSITE: the station's details and the Log Book's Website column have a
+Website button that opens the station's own site (address from iHeart,
+Radio Browser or Wikipedia's Website line).
+
+
+FIXING A STATION
+----------------
+In DX Mapper click the station, then Edit: call letters, MHz, coordinates,
+slogan. Save. A new call letters looks up its location by itself. The RDS
+Monitor reads its station names straight from DX Mapper's log, so it shows
+the fix within a second. Make all station fixes in DX Mapper.
+
+AUTOMATIC CALL LETTERS ARE US ONLY. The monitor works out call letters
+from the PI code only for US stations. Outside the US (Canada, Mexico,
+Europe...) it shows "unknown" until you name the station once in DX
+Mapper (Edit); after that it shows every time.
+
+"Update all" (DX Mapper sidebar) goes through your whole log in one pass:
+  1. fills the monitor's fallback stations.txt: call, city, coordinates,
+     slogan (lines you typed by hand are kept),
+  2. downloads a logo for every station that has none (yours are kept),
+  3. looks up live stream links and websites for stations missing one.
+A box under the buttons shows a bar for each step (Details, Logos,
+Streams) and, when it's done, a summary of what it found. Anything that
+went wrong (for example no internet) shows in red. Close it with the x.
+
+
+ARRANGE THE WINDOWS (1, 2 OR 3 SCREENS)
+---------------------------------------
+Start Radio puts the three windows in place once they open:
+  1 screen   FM Tuner on the left third, RDS Monitor top right, DX Mapper
+             bottom right.
+  2 screens  FM Tuner on display 1; RDS Monitor above DX Mapper on the left
+             half of display 2, so the right half stays free.
+  3 screens  one program per screen.
+"Arrange Windows.bat" lets you choose which display each program goes on,
+whole screen / left half / right half, and whether Start Radio arranges
+them every time. Your choice is saved in the settings folder next to it.
+After the first time, Start Radio puts each window back where you last had it.
+
+
+JUST LISTENING TO LOCALS
+------------------------
+DX Mapper > All: the station list starts with "Locals (0-40 mi)", then
+"Extended local (41-80 mi)", both in frequency order; farther stations
+(81+ mi) are under DX. Change the miles under Home... (the RDS Monitor
+uses the same miles). Each row has a Tune button, and a Stream button when
+a stream link was found. Tick "Follow tuner" and the
+map follows whatever you tune.
+
+
+DXING AWAY FROM HOME
+--------------------
+RDS Monitor > Tools > Set Away Location..., then Use Away location.
+Optional USB GPS dongle: Tools > GPS Location... sets Home or Away from it
+and can keep Away updated while you travel.
+DX Mapper's map and distances follow, and each log remembers where you were.
+
+
+SEVERAL LOGS (HISTORICAL, CURRENT, TRIPS)
+-----------------------------------------
+DX Mapper > Logs... (top left). Each log is its own file, so if one has a
+problem you delete just that one. Your first log is "Main"; Rename it (e.g.
+Historical) and use New log for Current or a trip.
+Tick the logs to show together: the FIRST one you tick gets new catches,
+edits and imports; the others are view only. A station in both shows once,
+with info from both and every log entry tagged with its log. Old stations
+keep their badge; Copy to Current (or -> Current on one catch) copies them
+over, with the whole HD family. Manual 6.8.
+"Also log new catches into the other ticked logs" is OFF by default; ticking
+it asks first (Turn it on / Keep it off).
+
+
+WHAT'S NEW
+----------
+WHATS_NEW.txt (next to Start Radio) lists every update by date, newest
+first. The guides are updated with each new copy.
+
+THUMB DRIVE / TRAVEL LAPTOP
+---------------------------
+The whole radio can run from a USB thumb drive (E:\DXMapper Suite). Set each
+laptop up once: install Python, run "Install All.bat" from the drive, and
+run Zadig for the dongle. After that you only carry the drive, the dongle
+and an antenna. Your presets, Log Book and settings travel on the drive.
+Close all three programs before unplugging the drive. Full steps: Owner's
+Manual, chapter 2, "Running from a thumb drive".
+
+
+HD RADIO (OPTIONAL ADD-ON)
+--------------------------
+The FM Tuner can decode HD Radio with the free nrsc5 decoder. It is NOT in
+this download: get or build it yourself from
+https://github.com/theori-io/nrsc5 (you need libnrsc5.dll and nrsc5.py).
+Without it everything works as analog and the tuner says "HD decoder not
+installed".
+
+  Install:   FM Tuner > Audio panel > "Add HD decoder..." and pick the
+             file(s). They go into settings\hd, so updates keep them.
+  Until it's added only "Add HD decoder..." shows; HD Seek and the HD
+  controls appear once it is in. Outside the Americas region (Europe,
+  Japan, OIRT) all HD controls are hidden: there is no HD Radio there.
+  HD Radio:  Auto (HD when locked, analog when it drops), Manual (stays on
+             your pick), HD only (silent without HD), Analog only.
+  Channel:   lists Analog plus only the HD channels actually found.
+  Analog plays live, so tuning is instant. When HD drops, analog picks up
+  a few seconds ahead (HD runs behind analog).
+
+The RDS Monitor shows the HD info (station, slogan, HD1-HD8 names, song,
+alerts, signal quality). View > Open Group Analyzer Window has an HD Data
+tab, the HD version of Group Statistics. HD logos are saved as CALL.png
+(analog/HD1) and CALL-HD2.png, CALL-HD3.png... Album art and traffic maps
+only show while current. DX Mapper logs HD2-HD8 as their own stations.
+
+
+REMOTE - LISTEN ON YOUR PHONE, TABLET OR ANOTHER PC (whole-home audio)
+----------------------------------------------------------------------
+It's a web page, so it works on iPhone, iPad, Android phones and tablets
+and PCs or Macs in any browser - nothing to install on them.
+FM Tuner > REMOTE panel: tick "Allow remotes on my home network". Scan the
+QR code with your phone's camera (or type the address shown, e.g.
+http://192.168.1.20:7377/, into a browser on another PC on the same Wi-Fi).
+If Windows asks about the firewall, tick Private networks and click Allow.
+Press "Listen on this device" on the page for the audio. It shows the logo,
+call, slogan, city, range and now playing, with Tune/Seek/preset (HD Seek
+only when the HD decoder is added)
+buttons, and "Log this station" logs the catch to DX Mapper. Everyone
+hears the same station. "Play on this PC" turns the tuner
+PC's speakers off while remotes keep playing.
+
+HOTKEYS (FM Tuner window): Up/Down arrow = tune up/down one channel,
+Left/Right arrow = previous/next preset (wraps around at the ends).
+View > Arrow keys switches them off.
+
+
+YOUR DATA - THE "settings" FOLDER
+---------------------------------
+One settings folder next to Start Radio holds everything for all three:
+  FM Tuner     presets, panel layout, gain memory, hd\ (HD decoder)
+  RDS Monitor  stations.txt, logos, Home/Away, station counts
+  DX Mapper    dx_log.db (master log), DX Log.xlsx (Excel copy), Backups
+
+The ZIPs never contain it. To update, unzip the new copy over the old
+one: your settings stay as they are.
+
+Backup: DX Mapper > Backup... Put your Google Drive folder under
+"Also copy it to" for an off-PC copy. Backup... > Restore brings it back.
+
+
+FOR EXPERIMENTING - HOW THEY TALK (this PC only, 127.0.0.1)
+-----------------------------------------------------------
+    23  FM Tuner -> RDS Spy and other RDS programs (ASCII G groups)
+  7376  FM Tuner -> RDS Monitor: same groups plus RDS2 (use if 23 is taken)
+  7373  FM Tuner -> telemetry (frequency, signal, stereo, HD)
+  7374  commands -> FM Tuner (e.g. TUNE 101.1)
+  7375  RDS Monitor -> DX Mapper (logs, Now hearing)
+  7380  DX Mapper map window / web page
+  7377  FM Tuner remote page (home network, only when switched on)
+
+The RDS Monitor can also read RDS Spy .spy files or any other ASCII G
+source (Input menu), so it works without the FM Tuner.
+
+More: README.md and INSTALL.txt in each folder.
+
+Ideas or problems? Email j.rds.monitor@gmail.com

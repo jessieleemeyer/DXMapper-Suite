@@ -1,0 +1,311 @@
+INSTALL - DXMapper Suite (FM Tuner, RDS Monitor and DX Mapper)
+All three are in this one folder. Install All.bat does the Python part;
+the FM Tuner section below covers the dongle driver (steps 3 and 4a).
+
+========================================================================
+FM TUNER
+========================================================================
+FM TUNER - WINDOWS INSTALLATION
+===============================
+
+Everything below is done once. Steps 1-4 are required; step 5 is optional.
+The short version: install Python, run install.bat, run Zadig, copy
+rtlsdr.dll into this folder, then start FM_Tuner.py.
+
+The RDS Monitor is a SEPARATE program in its own folder - it needs none of
+steps 3-5 and no numpy/sounddevice; see its own INSTALL.txt.
+
+
+1. INSTALL PYTHON
+-----------------
+Download Python 3.10 or newer (64-bit) from:
+
+    https://www.python.org/downloads/windows/
+
+In the installer:
+  * tick "Add python.exe to PATH"
+  * keep "tcl/tk and IDLE" selected (this is tkinter, both windows need it)
+
+Check it worked - open Command Prompt and run:
+
+    python --version
+    python -c "import tkinter; print('tkinter ok')"
+
+If you get "'python' is not recognized", reinstall Python with "Add to PATH"
+ticked, or use the "py -3" launcher in place of "python".
+
+    python --version
+
+If neither works, Python is not on PATH: re-run the python.org installer,
+choose Modify, tick "Add Python to environment variables" and "py launcher",
+then close and reopen the Command Prompt.
+
+Note on very new Python versions: 3.14 was released recently and numpy or
+sounddevice may not have wheels for it yet. If pip fails to build them in
+step 2, install Python 3.12 (64-bit) from the same page and use that.
+
+
+2. INSTALL THE PYTHON PACKAGES
+------------------------------
+Double-click  install.bat  in this folder.
+
+It installs numpy and sounddevice, then tells you whether
+rtlsdr.dll is present. If you prefer to do it yourself:
+
+    cd path\to\FM-Tuner
+    python -m pip install --upgrade pip
+    python -m pip install -r requirements.txt
+
+  numpy       FM demodulation, MPX/waterfall FFT     required
+  sounddevice Windows audio output                   required for sound
+
+
+3. INSTALL THE RTL-SDR USB DRIVER (ZADIG)
+-----------------------------------------
+Plug the dongle in, then download and run Zadig:
+
+    https://zadig.akeo.ie/
+
+  a. Options -> List All Devices
+  b. Pick your dongle in the drop-down, e.g.
+     "Bulk-In, Interface (Interface 0)" or "RTL2838UHIDIR"
+  c. Choose WinUSB as the driver
+  d. Click Replace Driver / Install Driver
+
+Do this once for each USB port you use the dongle in. This replaces the DVB-T
+TV driver - that is expected; TV software will no longer see the dongle.
+
+
+4. INSTALL rtlsdr.dll
+---------------------
+Download:
+
+    https://github.com/rtlsdrblog/rtl-sdr-blog/releases/latest/download/Release.zip
+
+Open the x64 folder inside the ZIP and copy these two files into THIS folder,
+next to FM_Tuner.py:
+
+    rtlsdr.dll
+    libusb-1.0.dll
+
+(Keeping the DLL elsewhere also works: set the environment variable
+RTLSDR_DLL to its full path.)
+
+If the DLL is missing, the tuner still opens and shows this same download
+link in its error panel instead of crashing.
+
+Use the rtl-sdr-blog build above if you want Bias-T: older rtlsdr.dll copies
+do not export bias-tee control, and the tuner will say so.
+
+
+4a. OPTIONAL - HACKRF (OR ANOTHER SOAPYSDR RADIO)
+-------------------------------------------------
+Skip this if you only use an RTL-SDR. The tuner talks to a HackRF through
+SoapySDR, which is a separate free install:
+
+  a. Download and run the PothosSDR installer (the newest "x64" .exe):
+
+         https://downloads.myriadrf.org/builds/PothosSDR/
+
+     Keep the default folder (C:\Program Files\PothosSDR). When it asks,
+     choose "Add PothosSDR to the system PATH for all users".
+  b. Plug the HackRF in. If SDR# or SDR++ already works with it, the USB
+     driver is fine. If not, run Zadig (step 3), pick "HackRF One" and
+     choose WinUSB.
+  c. Start the tuner. The GAIN panel is hidden at first: turn it on with
+     View > Gain. In the GAIN panel, pick the HackRF in the Radio list
+     (press Find if you plugged it in after starting). The tuner remembers
+     your choice in settings.
+
+The HackRF runs at 1.92 MHz and the tuner slices that down to the same
+0.96 MHz (about 1 MHz wide) it uses for an RTL-SDR, so FM, RDS and HD all
+work the same way. Its gain slider goes from 0 to 102 dB (LNA first, then
+VGA); the HackRF's extra 14 dB RF amp is left off. Bias-T is not switched
+from the tuner on a HackRF.
+
+
+4b. BIAS-T (powered antenna or LNA)
+-----------------------------------
+The ANTENNA POWER panel in the tuner has a "Bias-T (4.5 V on antenna port)"
+checkbox. It is OFF when the tuner starts, asks for confirmation before it
+switches on, and is switched off again when the dongle is released.
+
+Only switch it on when a powered LNA or active antenna is connected. Feeding
+4.5 V into a DC-shorted antenna, splitter or dummy load can damage the
+dongle.
+
+To start with it already on:   python FM_Tuner.py --bias-t
+Remotely (port 7374):          BIAST ON   /   BIAST OFF
+
+
+4c. PRESETS
+-----------
+The PRESETS row stores as many stations as you want. "+ Save current" adds
+the station you are on (named from its RDS callsign/PS when known), a click
+tunes to a preset, and right-clicking one selects it so Rename / Delete /
+the arrow buttons apply to it.
+
+They are saved in settings\tuner_presets.json in the tuner folder (or your
+home folder if that is not writable), together with the window layout and
+layout presets. The settings folder is not in the ZIP: to upgrade, copy it
+into the new version's folder and everything comes back.
+
+
+5. OPTIONAL - PORT 23
+---------------------
+The tuner serves RDS on port 7376 and also tries port 23 for software that
+expects the SDR# RDSOutput port. Port 23 is the telnet port: if it is taken,
+or Windows refuses it, the tuner logs a message and keeps running normally on
+7376. To use port 23, close whatever holds it (often the Windows Telnet
+Server) or start the tuner with "Run as administrator".
+
+
+RUNNING IT
+----------
+    python FM_Tuner.py          (or "python FM_Tuner.py" without the launcher)
+
+The file is double-clickable if .py is associated with Python.
+
+If you also use the RDS Monitor, start the TUNER FIRST, then the monitor from
+its own folder; it connects over localhost TCP and reconnects on its own if
+the tuner is restarted.
+
+
+IF SOMETHING IS WRONG
+---------------------
+"rtlsdr.dll not found"       -> step 4 (and use the x64 copy)
+Bias-T "not supported"       -> step 4, use the rtl-sdr-blog rtlsdr.dll
+"No RTL-SDR device found"    -> step 3, replug the dongle, close other SDR apps
+"import numpy failed"        -> step 2
+"'py' is not recognized"     -> use "python" instead, or step 1
+No GUI / tkinter error       -> reinstall Python with tcl/tk selected (step 1)
+"Invalid sample rate"        -> fixed: the tuner now opens the device at the
+                                rate it accepts and resamples; the status line
+                                shows the rate in use
+No audio                     -> pick a device in Output device, press Refresh,
+                                check Audio is ticked;  python FM_Tuner.py
+                                --list-devices  shows what Windows reports
+Client says "connecting..."  -> start the tuner first; allow Python through
+                                Windows Firewall for localhost
+
+More detail, controls, TCP protocol and troubleshooting: README.md
+Hardware acceptance checklist: docs\WINDOWS_TESTING.md
+
+========================================================================
+RDS MONITOR
+========================================================================
+RDS MONITOR - WINDOWS INSTALLATION
+==================================
+
+This program opens no radio hardware: no SDR, no MPX/virtual audio cable, no
+sound card. It needs no driver, no rtlsdr.dll, no numpy and no sounddevice.
+It gets RDS either from a .spy file or over localhost TCP from the FM Tuner
+(a separate program in its own folder).
+
+
+1. INSTALL PYTHON
+-----------------
+Download Python 3.10 or newer (64-bit) from:
+
+    https://www.python.org/downloads/windows/
+
+In the installer:
+  * tick "Add python.exe to PATH"
+  * keep "tcl/tk and IDLE" selected (this is tkinter - the window needs it)
+
+Check it worked - open Command Prompt and run:
+
+    python --version
+    python -c "import tkinter; print('tkinter ok')"
+
+If you get "'python' is not recognized", reinstall Python with "Add to PATH"
+ticked, or use "py -3" in place of "python".
+
+
+2. INSTALL THE OPTIONAL PACKAGES
+--------------------------------
+Double-click  install.bat  in this folder, or:
+
+    cd path\to\RDS-Monitor
+    python -m pip install -r requirements.txt
+
+  requests    station logo download        optional
+  pillow      station logo display         optional
+
+Both are optional. Without them the monitor runs exactly the same and shows
+"No Logo" in place of station artwork.
+
+
+3. RUN IT
+---------
+    python "RDS Monitor.py"
+
+The quotes matter - the file name contains a space.
+
+Input menu:
+
+  Spy File (RDS Spy)        reads a .spy file (default; --spy-file sets it)
+  FM Tuner (TCP)            live RDS from the FM Tuner program:
+                              127.0.0.1:7376  RDS groups (ASCII G)
+                              127.0.0.1:7373  telemetry (tuned frequency,
+                                              signal, stereo, HD, gain)
+                              127.0.0.1:7374  tune / step / seek / stop
+  RDS Input (other TCP/UDP) any other ASCII G source, e.g. SDR# RDSOutput
+                            on port 23
+
+For live reception start the FM Tuner program first, then pick
+Input > FM Tuner (TCP). The tuned frequency appears in large text at the top
+of the monitor and follows the tuner.
+
+
+4. OPTIONS
+----------
+    python "RDS Monitor.py" --help
+
+  --spy-file   path to the .spy file
+  --watch      folder watched for the .spy file
+  --logo-dir   station logo folder
+  --pi-file    PI code override file
+
+
+IF SOMETHING IS WRONG
+---------------------
+"'py' is not recognized"      -> use "python", or reinstall Python with PATH
+No GUI / tkinter error        -> reinstall Python with tcl/tk selected
+Tuner frequency shows --.-    -> the FM Tuner program is not running, or it
+                                 is on other ports; start it first
+No groups in FM Tuner mode    -> check the tuner is receiving a station and
+                                 allow Python through Windows Firewall for
+                                 localhost
+"No Logo" on every station    -> step 2 (requests + pillow)
+
+More detail: README.md
+
+========================================================================
+DX MAPPER
+========================================================================
+DX Mapper - install
+===================
+
+1. DX Mapper is in the same folder as the RDS Monitor (DXMapper Suite). It
+   finds the monitor there by itself.
+   (Then DX Mapper picks up your home location and stations.txt from the monitor.)
+2. Python 3.10+ is already installed for the monitor. Nothing else to install.
+3. Double-click "DX Mapper.pyw" (or "Start DX Mapper.bat"). DX Mapper opens
+   in its own window - no command prompt. The first start sets up the window
+   component by itself (needs the internet once, about a minute). Windows 10
+   and 11 already have the Microsoft Edge WebView2 it uses. If the window
+   cannot open, the map opens in your web browser instead.
+4. In the RDS Monitor, press "Log to Map" (or Ctrl+L).
+
+If Windows Firewall asks, "Private networks" is enough. Everything runs on
+127.0.0.1 (this PC only).
+
+Auto-logging is OFF by default (RDS Monitor > Tools).
+Excel copy of your log: settings\DX Log.xlsx
+
+Backup
+   Click Backup... on the map page. The master backup (every station and every
+   log, never trimmed) is kept in settings\Backups. Type your Google Drive
+   folder (e.g. G:\My Drive\DX Mapper) under "Also copy it to" for an off-PC
+   copy. After a reinstall use Backup... > Restore and point it at that folder.

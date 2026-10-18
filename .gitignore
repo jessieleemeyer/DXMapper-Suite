@@ -1,0 +1,4 @@
+settings/*
+!settings/README.txt
+__pycache__/
+*.pyc

@@ -1,0 +1,291 @@
+WHAT'S NEW - DXMapper Suite (FM Tuner, RDS Monitor, DX Mapper)
+==============================================================
+Newest first. The Owner's Manual and Quick Start are updated with every
+DXMapper Suite ZIP. Your settings folders are never touched by an update.
+
+2026-10-13
+----------
+ADD STATION (STATIONS WITH NO RDS) - DX Mapper
+- New "Add station..." button in the sidebar, for stations that don't
+  send RDS. It reads the frequency the FM Tuner is on (no RDS needed;
+  you can also type one) and lists every FCC station on it, closest
+  first, with city, type (FM / LPFM / translator), power and distance.
+- Mostly for IDing locals, but DX is in the list too. On the edge of a
+  coverage area two stations can share a frequency, so nothing is picked
+  for you: compare them and click Add on the one you hear.
+- Type to narrow it down: call letters, a slogan ("Q102"), a city and
+  state ("Springfield, IL"), a state ("ky" or "Kentucky") or a region
+  ("central ky").
+- A station you add by hand stays as you entered it. If RDS later
+  decodes a different station on that frequency, it gets its own entry;
+  if it's the same station, RDS only fills in blanks (like the PI).
+- Now hearing works with no RDS: when the Tuner is on a frequency with
+  no RDS, the Now hearing bar shows the station you logged there, marked
+  "(no RDS)", with the map pulse, coverage outline and Follow tuner.
+  Two or more logged on that frequency: it asks which one you're hearing
+  (buttons) and never guesses; "change" picks another. Nothing logged
+  there: it shows an "Add station..." button. RDS always takes over when
+  it decodes. Nothing gets logged by itself.
+
+LOGO PICKER - DX Mapper
+- Station Details has a new "Change logo" button. It shows every logo
+  the lookup can find online (Wikipedia, Facebook, the network's logo and
+  the station's website) as small pictures. Click one to use it, or
+  upload your own picture.
+- Your pick replaces the station's logo straight away (in the RDS
+  Monitor's settings\logos folder, so the monitor shows it too). After
+  that nothing automatic changes it back - not the online lookup and not
+  a logo decoded off HD. Only another pick changes it.
+
+LOGO LOOKUP FIXES - DX Mapper / RDS Monitor
+- NETWORK LOGO: a station with no logo of its own (e.g. a King of Kings
+  Radio station) now gets its network's logo, from the network's
+  Wikipedia page or the website on the station's Wikipedia page.
+  Stations with their own logo (e.g. KISS FM stations) keep theirs.
+- NO MORE GREY PERSON: Facebook's blank profile picture (the grey
+  silhouette) is skipped. Some station pages also had a bit of Facebook
+  code that was mistaken for a page called "2008"; that is fixed too.
+- NO MORE BUILDING PHOTOS: when Wikipedia shows a studio, office or
+  tower photo at the top of the page, the logo from the page's "Logo"
+  line is used instead. Photos are skipped.
+- Logos you already have are not re-checked. To fix one that is wrong
+  (grey person, building photo), use Change logo.
+
+MUSIC SEARCH BUTTONS - RDS Monitor
+- Four small buttons under the song title and artist: YTM, SPOT, AMZ and
+  APL. Each one searches the song on YouTube Music, Spotify, Amazon Music
+  or Apple Music in your web browser.
+- They light up by themselves in each service's colour (YouTube red,
+  Spotify green, Amazon blue, Apple pink) while a song is showing (from
+  RT+ or the RadioText), and go grey for promos, ads and station IDs.
+
+GROUP SEQUENCE FINGERPRINT - RDS Monitor / DX Mapper
+- A green console-style "SEQ>" line under the decode badges shows the
+  last 24 RDS group types in the order they arrived (e.g. 0A 0A 2A 0A
+  8A ...). Each station's encoder repeats its own pattern, so it works
+  like a fingerprint for that transmitter.
+- It is sent to DX Mapper with every log, saved in a new "Group Sequence"
+  Log Book column (last column, also in the Excel export) and shown in
+  Station Details. Each new catch updates it, unless you typed your own.
+
+SISTER STATIONS & SAME MARKET - DX Mapper
+- Station Details (map panel and Log Book card) has a new section just
+  above Edit: Sister stations (from Wikipedia's "Sister stations" line,
+  plus stations in your log with the same owner) and Same market (FM
+  stations the FCC lists for the station's city, plus stations in your
+  log from the same city and state). Uses your Log Book's City/State
+  first, then the FCC's.
+- Stations already in your log are links that open them; the rest are
+  plain text. Lookups are saved for a month. Translators aren't listed.
+
+NOW PLAYING ON THE MAP'S STATION CARD - DX Mapper
+- When the station open in Station Details is the one the RDS Monitor
+  is decoding live, a scrolling bar under the call letters shows the
+  song (or the RadioText), the same as the Log Book's station card.
+  It's hidden for stations that aren't on the air.
+
+LOG BOOK SEARCH - DX Mapper
+- "ky" finds Kentucky and "kentucky" finds KY (every US state and
+  Canadian province). Classic view also finds a city and state typed
+  together ("campbellsville ky"), even when those columns are hidden.
+
+REMOTE WORDING - FM Tuner and guides
+- The Remote panel (now "REMOTE (PHONE / TABLET / PC)"), its hint text,
+  the Tuner README and every Quick Start copy now say it works on any
+  phone or tablet (iPhone, iPad or Android) and any PC or Mac. It's a
+  web page, so any browser works. Nothing about the remote itself changed.
+
+TRANSLATOR LOGOS - DX Mapper / RDS Monitor
+- A translator (e.g. W293BK relaying WTCO) keeps its own call letters
+  but shows the logo of the station it relays (WTCO's). Download logo
+  and Update all fetch the parent's logo instead of looking up the
+  translator. A relayed HD2-HD8 channel uses that channel's logo,
+  else the main station's.
+- Works when the parent is an AM station (e.g. WTCO 1450 AM and its FM
+  translator W294CO): the parent comes from the FCC record, WTFDA's
+  "Relay of", the station's Wikipedia page or Fed by in Edit.
+- An HD2-HD8 channel that simulcasts an AM station keeps its own call
+  (WXXX-HD2) but uses the AM's logo, when Wikipedia's HD list says so
+  (e.g. "HD2: Simulcast of WTCO 1450 AM") or when you type the AM's
+  call in that HD channel's Fed by.
+- The RDS Monitor no longer names the parent's PI after a translator
+  logged in DX Mapper, so the main station keeps its own call letters.
+
+HD CONTROLS - FM Tuner
+- HD Seek Down / Up and the HD mode / channel controls are hidden unless
+  the HD decoder add-on is installed (on the phone/tablet remote too).
+  Only "Add HD decoder..." shows; the rest appears as soon as you add it.
+- Region set to Europe, Japan or OIRT: there is no HD Radio there, so
+  every HD control is hidden, including Add HD decoder. Switch Region
+  back to Americas to see them.
+
+LIFETIME COUNT - RDS Monitor
+- Lifetime now counts the unique PI codes in your current DX Mapper log
+  (the first one ticked in Logs...). HD2-HD8 share their station's PI, so
+  they don't count extra. It goes up as you log and down if you delete.
+- With no DX Mapper log it counts the old way (every PI ever decoded), and
+  only then does Reset Lifetime Counter do anything.
+
+GUIDE FIXES - Quick Start and Owner's Manual
+- New RDS Monitor picture: TMC traffic is a ticker along the bottom.
+- Automatic call letters from the PI code are US only. Outside the US,
+  name the station once in DX Mapper (Edit) and the Monitor shows it.
+- HackRF / SoapySDR support is marked EXPERIMENTAL until it is fixed.
+- The remote is a web page: iPhone, iPad, Android phones and tablets and
+  PCs, in any browser, nothing to install.
+- Owner's Manual 5.4: station names come from DX Mapper's database; there
+  is no PI override file to edit (stations.txt is only a background
+  fallback the Monitor fills itself).
+
+2026-10-12
+----------
+SEVERAL LOGS - DX Mapper
+- Logs... (top left) makes, renames and deletes logs. Each log is its own
+  file (settings\Logs\<name>.db, own Excel copy and backups), so deleting
+  one never touches the others. Your current log is "Main" until renamed.
+- Tick several logs to show together. The FIRST ticked gets new catches,
+  edits and imports; the others are view only.
+- A station in two logs shows once, with info from both and each log entry
+  tagged with its log. Stations only in a view-only log keep a log badge.
+- Copy to Current / -> Current copies an old station or catch over, with
+  its whole HD family. The old log is never changed.
+- "Also log new catches into the other ticked logs" (in Logs...) is OFF by
+  default. Ticking it shows a warning popup; only "Turn it on" turns it on.
+
+PUBLIC RELEASE CHECK
+- scipy is now in requirements.txt and installed by Install All.bat. The
+  FM Tuner needs it for sound; a new PC without it got "Audio unavailable".
+  Listed in DEPENDENCIES.txt and the credits.
+- Install All.bat now has Windows line endings.
+- DEPENDENCIES.txt notes the map (Leaflet) loads from the internet.
+- The Owner's Manual's multi-log example no longer names real towns.
+- EULA copyright: (c) 2026 J. Meyer.
+- The public ZIP now has a release number: "DXMapper Suite v2026.10.12.zip"
+  (the build date; a second build the same day gets .2). The same number
+  is in VERSION.txt inside it. The folder inside is still "DXMapper Suite",
+  and your copy is still "DXMapper Suite Personal.zip".
+
+FM TUNER - SAVE GAIN BUTTON
+- "Remember gain per frequency" now has a Save gain button next to it.
+  Gain is saved for the tuned frequency ONLY when you click Save gain;
+  moving the slider, + / - or the mouse wheel no longer saves (it was
+  saving in-between values). Saved gains still come back when you tune
+  there again and on Start. Gains you saved before are kept.
+
+ZIP AND FOLDER NAMES
+- The ZIPs are now named after the project: "DXMapper Suite.zip" (public)
+  and "DXMapper Suite Personal.zip" (personal copy, not for sharing). They
+  replace Radio Public.zip and Radio.zip.
+- Each ZIP holds one folder with the same name ("DXMapper Suite" or
+  "DXMapper Suite Personal"), so you can tell the copies apart.
+- The public ZIP's folder is "DXMapper Suite". Extract it to C:\ (or
+  wherever you keep programs). Updating from a copy without that folder:
+  rename your radio folder (e.g. C:\Radio) to "DXMapper Suite" first, then
+  extract over it, so your settings stay with it.
+
+EXCEL COPY AND IMPORT - DX Mapper
+- DX Log.xlsx now has a bold warning on the top row of every sheet: it is a
+  copy for viewing; edits typed in Excel are NOT read back. Make changes in
+  DX Mapper, or bring an edited sheet in with Import...
+- Import now only fills blanks. It never replaces call letters, PI, PS, PTY,
+  slogan or other info your log already has.
+
+RDS Monitor - station names from DX Mapper's log
+- The Monitor reads call letters, city, coordinates and slogan straight
+  from DX Mapper's logs (all of them, read only), so a fix made in DX
+  Mapper shows within a second. stations.txt is only a fallback now.
+- Removed: Open PI Codes File, Set Callsign for Current PI and Reload PI
+  Overrides. Fix stations in DX Mapper instead.
+
+ONE FOLDER - DXMapper Suite is now one program
+- FM Tuner, RDS Monitor and DX Mapper are in one folder with ONE settings
+  folder, one Install All, one INSTALL.txt and one requirements.txt.
+- FM_Tuner.py, RDS Monitor.py and DX Mapper.py sit next to Start Radio for
+  quick launch of just one part (no console window).
+- First start copies your settings (and rtlsdr.dll) from the old FM-Tuner,
+  RDS-Monitor and DX-Mapper folders. The old folders are not touched, so
+  you can go back; delete them once everything works.
+- rtlsdr.dll and libusb-1.0.dll now go in the main folder.
+
+RDS Monitor - GPS (optional)
+- Tools > GPS Location (USB GPS dongle)... finds the dongle by itself,
+  shows the fix and sets Home or Away from it.
+- "Keep the Away location updated from GPS while traveling": Away follows
+  you (at most once a minute, after moving half a mile). DX Mapper follows.
+- Not required: without a dongle you type Home/Away as before. Uses the
+  pyserial add-on that Install All puts in.
+
+Sharing
+- The project is now called DXMapper Suite (FM Tuner, RDS Monitor
+  and DX Mapper). File and folder names stay the same.
+- New free public copy, Radio Public.zip: all features, with no personal
+  stations, logs or settings. It includes EULA.txt and
+  THIRD_PARTY_NOTICES.txt, which credits every outside part, map,
+  data source, standard and trademark the programs use.
+- Owner's Manual: new chapter 11, Credits.
+- New DEPENDENCIES.txt next to Start Radio: every part the programs
+  need, what's included, what Install All adds and what you add yourself.
+
+FM Tuner - gain memory fixes
+- Remembered gain now also comes back when you press Start.
+- A gain change made right after tuning is saved to the new frequency,
+  not the one you just left.
+- Recall re-sends the saved gain to the dongle even if the slider already
+  shows it.
+DX Mapper - Log Book
+- Modern view: Classic | Modern switch. Station cards with search,
+  now-playing bar, Local / Extended Local / DX Catches / Show all tabs,
+  logo backgrounds and PI PTY RT RT+ iTunes TMC lights.
+- Station panel with the same sections as Station Details, Wikipedia
+  summary, Edit info, Delete station and x on each Log history entry
+  (both ask in a confirmation popup first).
+- Follows the map; "Open station card" in Station Details jumps to the
+  card; "Show on map" in the panel goes the other way.
+- Call letters: regular stations and HD1 are just call letters (WAPD);
+  HD2-HD8 show as WAPD-HD2 on their own card.
+- Splatter: auto logs of a PI already logged on another frequency join
+  that station (unless the FCC lists a translator there). Pressing Log in
+  the RDS Monitor always logs where you're tuned.
+- One entry per station: a station moved onto another entry's call and
+  frequency is merged at once. Duplicates... merges doubles already there
+  (same or other frequency) and saves a backup first.
+DX Mapper - Station Details
+- Only defined ODAs are listed; junk unregistered AIDs from damaged
+  groups are hidden. Announced known apps (like iTunes Tagging) get a line.
+- "Hide my location" checkbox for sharing screenshots.
+RDS Monitor
+- TMC traffic messages scroll in a ticker along the bottom of the window.
+  (It still decodes every group, even without a 3A, for weak stations.)
+FM Tuner
+- "Remember gain per frequency" moved right under Manual/Automatic.
+Guides
+- Thumb drive / travel laptop instructions; WHATS_NEW.txt (this file).
+
+2026-10-11
+----------
+- Per-frequency gain memory (GAIN panel, Manual gain).
+- HackRF support through SoapySDR (radio picker in the GAIN panel);
+  Auto gain fix for HackRF.
+- Signal units: S-units (default) or dB; the Monitor follows the tuner.
+- DX Mapper: FCC coverage outlines, distance rings, county/state lines,
+  weather radar, faster Terrain map.
+- Log Book: editable like Excel, Decoded RDS check columns, WTFDA lookups.
+
+2026-10-10
+----------
+- Start Radio remembers your last window layout.
+- Auto-log updates every 5 minutes while a station keeps decoding.
+- Log Book Source (dongle) and Notes columns; Clean up.
+- Station Details: Analog and HD sections, HD2-HD8 and translator links.
+
+2026-10-08
+----------
+- HD Radio decoding (add the HD decoder from the Audio panel); HD in the
+  RDS Monitor; analog stays live while tuning.
+- Live stream lookups (Stream button); FCC translator detection.
+- Arrange Windows.
+
+2026-10-05
+----------
+- Remote page (control the tuner from a phone or tablet on your network).
+- Region / band plans (Americas, Europe, Japan, OIRT).

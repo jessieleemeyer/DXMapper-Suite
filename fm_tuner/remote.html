@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#16213e">
+<title>FM Tuner Remote</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; background: #1a1a2e; color: #e6e6f0; font-family: "Segoe UI", Roboto, Arial, sans-serif; }
+.wrap { max-width: 520px; margin: 0 auto; padding: 12px; }
+.card { background: #16213e; border-radius: 10px; padding: 14px; margin-bottom: 12px; text-align: center; }
+#logo { max-width: 100%; max-height: 240px; border-radius: 6px; display: none; margin: 0 auto 8px; }
+#call { font-size: 40px; font-weight: 800; color: #e94560; letter-spacing: 1px; }
+#slogan { color: #f1c40f; font-style: italic; font-size: 18px; margin-top: 2px; }
+#city { color: #8a93b8; font-size: 16px; margin-top: 4px; }
+#range { color: #51e2a8; font-weight: 700; font-size: 16px; margin-top: 6px; }
+#rt { margin-top: 10px; font-size: 16px; min-height: 22px; }
+#np { margin-top: 4px; font-size: 15px; color: #cfd6f6; }
+.freqrow { display: flex; align-items: baseline; justify-content: center; gap: 10px; margin-top: 10px; }
+#freq { font-size: 34px; font-weight: 800; color: #51e2a8; }
+.badge { font-weight: 800; font-size: 14px; padding: 2px 6px; border-radius: 4px; color: #1a1a2e; display: none; }
+#b-st { background: #51e2a8; } #b-hd { background: #f39c12; }
+#sig { color: #8a93b8; font-size: 13px; margin-top: 2px; }
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+button { background: #1a5276; color: #fff; border: 0; border-radius: 8px; padding: 14px 6px; font-size: 16px; font-weight: 700; cursor: pointer; }
+button:active { background: #0f3460; }
+button.stop { background: #e94560; }
+button.play { background: #2e8b57; font-size: 18px; }
+button.on { outline: 3px solid #51e2a8; }
+.tune { display: flex; gap: 8px; margin-top: 8px; }
+.tune input { flex: 1; min-width: 0; font-size: 18px; padding: 10px; border-radius: 8px; border: 0; background: #0f3460; color: #fff; text-align: right; }
+#presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+#presets button { font-size: 13px; padding: 10px 4px; line-height: 1.25; }
+#presets button.air { background: #0f3460; outline: 2px solid #51e2a8; }
+.vol { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.vol input { flex: 1; }
+h3 { margin: 0 0 8px; font-size: 13px; color: #8a93b8; text-align: left; letter-spacing: 1px; }
+#msg { color: #f1c40f; font-size: 13px; min-height: 16px; margin-top: 6px; }
+#hdrow { display: none; margin-top: 8px; gap: 6px; flex-wrap: wrap; justify-content: center; }
+#hdrow button { padding: 8px 12px; font-size: 14px; }
+</style></head>
+<body><div class="wrap">
+<div class="card">
+  <img id="logo" alt="">
+  <div id="call">--</div>
+  <div id="slogan"></div>
+  <div id="city"></div>
+  <div id="range"></div>
+  <div class="freqrow"><span id="freq">---.-</span><span class="badge" id="b-st">STEREO</span><span class="badge" id="b-hd">HD</span></div>
+  <div id="sig"></div>
+  <div id="rt"></div>
+  <div id="np"></div>
+  <div id="hdrow"></div>
+  <button id="log" style="width:100%;margin-top:10px;background:#8e44ad">Log this station</button>
+</div>
+<div class="card">
+  <button class="play" id="play" style="width:100%">&#9654; Listen on this device</button>
+  <div class="vol"><span>Volume</span><input id="vol" type="range" min="0" max="1" step="0.05" value="1"></div>
+  <div id="msg"></div>
+  <audio id="audio" preload="none"></audio>
+</div>
+<div class="card">
+  <div class="grid">
+    <button id="b-dn" data-cmd="DOWN">&#9664; &minus;0.2</button><button id="b-up" data-cmd="UP">+0.2 &#9654;</button>
+    <button data-cmd="SEEK DOWN">&#9660; Seek Down</button><button data-cmd="SEEK UP">&#9650; Seek Up</button>
+    <button class="hdseek" data-cmd="SEEK HD DOWN">&#9660; HD Seek Down</button><button class="hdseek" data-cmd="SEEK HD UP">&#9650; HD Seek Up</button>
+    <button data-cmd="PRESET PREV">&#9664; Prev preset</button><button data-cmd="PRESET NEXT">Next preset &#9654;</button>
+  </div>
+  <div class="tune"><input id="tf" inputmode="decimal" placeholder="Tune to MHz"><button id="tb">Tune</button><button class="stop" data-cmd="STOP">&#9632; Stop</button></div>
+</div>
+<div class="card"><h3>PRESETS</h3><div id="presets"></div></div>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+let last = {}, logoKey = null, listening = false, presetKey = "";
+
+async function cmd(text) {
+  try {
+    const r = await fetch("/api/cmd", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({cmd: text})});
+    const j = await r.json();
+    $("msg").textContent = j.ok ? (j.message || "") : (j.error || "failed");
+    if (j.message) setTimeout(() => { if ($("msg").textContent === j.message) $("msg").textContent = ""; }, 4000);
+    setTimeout(poll, 250);
+  } catch (e) { $("msg").textContent = "Tuner not reachable"; }
+}
+document.querySelectorAll("[data-cmd]").forEach((b) => b.onclick = () => cmd(b.dataset.cmd));
+$("log").onclick = () => cmd("LOG");
+$("tb").onclick = () => { const v = parseFloat($("tf").value); if (v) { cmd("TUNE " + v); $("tf").value = ""; } };
+$("tf").onkeydown = (e) => { if (e.key === "Enter") $("tb").click(); };
+
+function render(s) {
+  const mhz = (f) => f.toFixed(s.decimals || 1);
+  $("b-dn").innerHTML = "&#9664; &minus;" + (s.step_mhz || 0.2);
+  $("b-up").innerHTML = "+" + (s.step_mhz || 0.2) + " &#9654;";
+  const call = s.callsign || (s.ps || "").trim() || (s.pi ? "PI " + s.pi : "--");
+  $("call").textContent = call;
+  $("slogan").textContent = s.slogan || (s.callsign && s.ps ? s.ps : "");
+  $("city").textContent = s.location || "";
+  $("range").textContent = s.range || "";
+  $("freq").textContent = mhz(s.frequency_mhz);
+  $("b-st").style.display = s.stereo ? "inline" : "none";
+  $("b-hd").style.display = s.hd_locked ? "inline" : "none";
+  document.querySelectorAll(".hdseek").forEach((b) => b.style.display = s.hd_available ? "" : "none");
+  $("sig").textContent = s.seeking ? "Seeking…" : s.state === "stopped" ? "Receiver stopped" :
+    (s.signal_text ? `Signal ${s.signal_text}` : "") + (s.pty ? " · " + s.pty : "");
+  $("rt").textContent = s.rt || "";
+  $("np").textContent = s.now_playing ? "♪ " + s.now_playing : "";
+  const key = s.logo ? (s.callsign || "") : "";
+  if (key !== logoKey) {
+    logoKey = key;
+    if (key) { $("logo").src = "/api/logo?c=" + encodeURIComponent(key) + "&t=" + Date.now(); $("logo").style.display = "block"; }
+    else $("logo").style.display = "none";
+  }
+  const pk = JSON.stringify([s.presets, s.frequency_mhz]);
+  if (pk !== presetKey) {
+    presetKey = pk;
+    $("presets").innerHTML = s.presets.map((p, i) =>
+      `<button data-i="${i + 1}" class="${Math.abs(p.frequency_mhz - s.frequency_mhz) < 0.005 ? "air" : ""}">${esc(p.name)}<br>${mhz(p.frequency_mhz)}</button>`).join("")
+      || '<span style="color:#8a93b8">No presets yet - save some in the FM Tuner</span>';
+    $("presets").querySelectorAll("button").forEach((b) => b.onclick = () => cmd("PRESET RECALL " + b.dataset.i));
+  }
+  const hd = s.hd_locked && s.hd_programs.length > 1 ? s.hd_programs : [];
+  $("hdrow").style.display = hd.length ? "flex" : "none";
+  const hk = hd.join(",");
+  if ($("hdrow").dataset.k !== hk) {
+    $("hdrow").dataset.k = hk;
+    $("hdrow").innerHTML = hd.map((h) => `<button data-hd="${esc(h.replace(/\D/g, ""))}">${esc(h)}</button>`).join("");
+    $("hdrow").querySelectorAll("button").forEach((b) => b.onclick = () => cmd("HD PROGRAM " + b.dataset.hd));
+  }
+  document.title = `${call} ${mhz(s.frequency_mhz)} – FM Tuner Remote`;
+  if ("mediaSession" in navigator && listening) {
+    navigator.mediaSession.metadata = new MediaMetadata({title: s.now_playing || s.rt || call,
+      artist: `${call} ${mhz(s.frequency_mhz)}`, album: s.slogan || "FM Tuner",
+      artwork: s.logo ? [{src: "/api/logo?c=" + encodeURIComponent(s.callsign)}] : []});
+  }
+  last = s;
+}
+async function poll() {
+  try { const r = await fetch("/api/status", {cache: "no-store"}); render(await r.json()); if ($("msg").textContent === "Tuner not reachable") $("msg").textContent = ""; }
+  catch (e) { $("msg").textContent = "Tuner not reachable"; }
+}
+setInterval(poll, 1000); poll();
+
+// Audio: the tuner's own output as an endless WAV stream.
+const audio = $("audio");
+function startAudio() {
+  audio.src = "/audio.wav?t=" + Date.now();
+  audio.volume = parseFloat($("vol").value);
+  audio.play().catch(() => {});
+}
+function retry() { if (listening) { $("msg").textContent = "Reconnecting audio…"; setTimeout(startAudio, 1500); } }
+audio.addEventListener("error", retry);
+audio.addEventListener("ended", retry);
+audio.addEventListener("playing", () => { if ($("msg").textContent.startsWith("Reconnecting")) $("msg").textContent = ""; });
+$("play").onclick = () => {
+  listening = !listening;
+  $("play").innerHTML = listening ? "&#9632; Stop listening" : "&#9654; Listen on this device";
+  $("play").classList.toggle("stop", listening);
+  $("play").classList.toggle("play", !listening);
+  if (listening) startAudio(); else { audio.pause(); audio.removeAttribute("src"); audio.load(); }
+};
+$("vol").oninput = () => { audio.volume = parseFloat($("vol").value); };
+$("vol").addEventListener("wheel", (e) => {
+  e.preventDefault();
+  const v = Math.min(1, Math.max(0, parseFloat($("vol").value) + (e.deltaY < 0 ? 0.05 : -0.05)));
+  $("vol").value = v.toFixed(2);
+  audio.volume = v;
+}, { passive: false });
+if ("mediaSession" in navigator) {
+  navigator.mediaSession.setActionHandler("nexttrack", () => cmd("PRESET NEXT"));
+  navigator.mediaSession.setActionHandler("previoustrack", () => cmd("PRESET PREV"));
+}
+</script>
+</body></html>
